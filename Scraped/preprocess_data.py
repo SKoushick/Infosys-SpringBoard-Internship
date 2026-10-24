@@ -60,19 +60,19 @@ def run_preprocessing_pipeline(raw_path: Path, output_path: Path):
     print("RUNNING MODULE 2 PREPROCESSING PIPELINE")
     print("=" * 60)
 
-    # 1. Load Raw Dataset
+    # Load Raw Dataset
     print(f"[1/6] Loading raw dataset: {raw_path}...")
     df = pd.read_csv(raw_path)
     total_talks = len(df)
     print(f"      Loaded {total_talks} records.")
 
-    # 2. Handle Missing Categorical Values
+    # Handle Missing Categorical Values
     print("[2/6] Imputing missing metadata fields...")
     df["speaker_occupation"] = df["speaker_occupation"].fillna("Unknown")
     df["main_speaker"] = df["main_speaker"].fillna("Unknown")
     df["description"] = df["description"].fillna("")
 
-    # 3. Parse Nested Columns
+    # Parse Nested Columns
     print(
         "[3/6] Parsing nested list structures (tags, related_talks, ratings)..."
     )
@@ -80,7 +80,7 @@ def run_preprocessing_pipeline(raw_path: Path, output_path: Path):
     df["tags_joined"] = df["clean_tags"].apply(lambda tags: " ".join(tags))
     df["related_talk_ids"] = df["related_talks"].apply(extract_related_talk_ids)
 
-    # 4. Clean Speech Transcripts & Build Fallback Strategy
+    # Clean Speech Transcripts & Build Fallback Strategy
     print("[4/6] Normalizing speech transcripts & handling nulls...")
     df["has_transcript"] = df["transcript"].notna() & (
         df["transcript"].str.strip().str.len() > 50
@@ -97,7 +97,7 @@ def run_preprocessing_pipeline(raw_path: Path, output_path: Path):
         df["main_speaker"].astype(str).str.lower().str.replace(" ", "_")
     )
 
-    # 5. Build Comprehensive Content Soup
+    # Build Comprehensive Content Soup
     print(
         "[5/6] Engineering unified 'content_soup' for TF-IDF / Embedding vectorization..."
     )
@@ -129,7 +129,7 @@ def run_preprocessing_pipeline(raw_path: Path, output_path: Path):
         df["published_date"], unit="s", errors="coerce"
     ).dt.strftime("%Y-%m-%d")
 
-    # 6. Save Clean Dataset
+    # Save Clean Dataset
     print(f"[6/6] Saving processed dataset to: {output_path}...")
     output_path.parent.mkdir(parents=True, exist_ok=True)
 

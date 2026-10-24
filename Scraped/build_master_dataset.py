@@ -9,7 +9,7 @@ def build_master_dataset(
     print("BUILDING MASTER RAW TED TALKS DATASET")
     print("=" * 60)
 
-    # 1. Load source archives
+
     print(f"[1/4] Loading {main_path.name}...")
     df_main = pd.read_csv(main_path)
     print(
@@ -20,22 +20,18 @@ def build_master_dataset(
     df_transcripts = pd.read_csv(transcripts_path)
     print(f"      Found {len(df_transcripts)} transcripts.")
 
-    # 2. Normalize join keys (strip whitespace)
     df_main["url"] = df_main["url"].astype(str).str.strip()
     df_transcripts["url"] = df_transcripts["url"].astype(str).str.strip()
 
     # Drop duplicate transcript URLs if any exist in the external file
     df_transcripts = df_transcripts.drop_duplicates(subset=["url"])
 
-    # 3. Merge metadata with transcripts
     print("[3/4] Merging datasets on talk URL...")
     merged_df = pd.merge(df_main, df_transcripts, on="url", how="left")
 
-    # Add stable 1-indexed talk_id as the primary key
     merged_df.insert(0, "talk_id", range(1, len(merged_df) + 1))
     merged_df["source"] = "TED_Public_Archive_CC_BY_NC_SA_4.0"
 
-    # 4. Reorder columns for readability and downstream pipeline stability
     primary_columns = [
         "talk_id",
         "title",
@@ -55,12 +51,10 @@ def build_master_dataset(
         "source",
     ]
 
-    # Include any remaining auxiliary columns from ted_main
     final_cols = [c for c in primary_columns if c in merged_df.columns]
     extra_cols = [c for c in merged_df.columns if c not in final_cols]
     final_df = merged_df[final_cols + extra_cols]
 
-    # 5. Save master raw dataset
     output_path.parent.mkdir(parents=True, exist_ok=True)
     final_df.to_csv(output_path, index=False, encoding="utf-8")
 

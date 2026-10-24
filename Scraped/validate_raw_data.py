@@ -14,13 +14,13 @@ def audit_raw_dataset(file_path: Path):
 
     df = pd.read_csv(file_path)
 
-    # 1. Dimensions
+    # Dimensions
     total_records, total_columns = df.shape
     print(f"\n1. RECORD COUNT & SHAPE")
     print(f"   - Total rows: {total_records}")
     print(f"   - Total columns: {total_columns}")
 
-    # 2. Schema and Null Values
+    # Schema and Null Values
     print(f"\n2. COLUMN INTEGRITY & MISSING VALUES")
     null_summary = df.isnull().sum()
     for col in df.columns:
@@ -30,7 +30,7 @@ def audit_raw_dataset(file_path: Path):
             f"   - {col:18} | Type: {str(df[col].dtype):8} | Missing: {null_count:5} ({null_pct:5.2f}%)"
         )
 
-    # 3. Key Content Checks
+    # Key Content Checks
     print(f"\n3. CONTENT-BASED RECOMMENDER READINESS")
     has_title = "title" in df.columns
     has_transcript = "transcript" in df.columns
@@ -49,7 +49,7 @@ def audit_raw_dataset(file_path: Path):
             f"   - Usable transcripts (>50 chars): {actual_transcripts} / {total_records}"
         )
 
-    # 4. Identifier and Duplication Checks
+    # Identifier and Duplication Checks
     print(f"\n4. UNIQUENESS CHECKS")
     if "url" in df.columns:
         dup_urls = df["url"].duplicated().sum()
