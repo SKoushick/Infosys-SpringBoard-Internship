@@ -1,0 +1,457 @@
+{
+  "retrieved_at_utc": "2026-10-20T18:21:41.726417+00:00",
+  "source_url": "https://www.ted.com/talks",
+  "robots_txt_compliant": true,
+  "talks_count_on_initial_page": 24,
+  "sample_talks": [
+    {
+      "__typename": "Video",
+      "id": "191270",
+      "title": "Why the best learners talk to themselves",
+      "slug": "tania_lombrozo_why_the_best_learners_talk_to_themselves",
+      "primaryImageSet": [
+        {
+          "__typename": "PhotoSize",
+          "url": "https://pi.tedcdn.com/r/talkstar-assets.s3.amazonaws.com/production/talks/talk_191270/0a02c62a-c306-4f7c-a524-a70915429c01/TaniaLombrozo_2025X-embed.jpg",
+          "aspectRatioName": "16x9"
+        },
+        {
+          "__typename": "PhotoSize",
+          "url": "https://pi.tedcdn.com/r/talkstar-assets.s3.amazonaws.com/production/talks/talk_191270/27089395-94b8-48e0-adf0-7693cf741d83/TaniaLombrozo_2025X-stageshot.jpg",
+          "aspectRatioName": "4x3"
+        },
+        {
+          "__typename": "PhotoSize",
+          "url": "https://pi.tedcdn.com/r/talkstar-assets.s3.amazonaws.com/production/talks/talk_191270/7486b674-4c4d-4403-ad9a-220b91298a75/TaniaLombrozo_2025X-1350x675.jpg",
+          "aspectRatioName": "2x1"
+        }
+      ],
+      "presenterDisplayName": "Tania Lombrozo",
+      "duration": 937,
+      "videoContext": "TEDxNewEngland",
+      "canonicalUrl": "https://www.ted.com/talks/tania_lombrozo_why_the_best_learners_talk_to_themselves",
+      "hasDubbedStreams": false,
+      "viewedCount": 0,
+      "tedcomPercentage": null,
+      "youtubePercentage": null,
+      "podcastsPercentage": null,
+      "tedappsPercentage": null,
+      "publishedAt": "2026-10-20T14:45:13Z",
+      "recordedOn": "2025-10-30",
+      "topics": {
+        "__typename": "TopicConnection",
+        "nodes": [
+          {
+            "__typename": "Topic",
+            "name": "technology"
+          },
+          {
+            "__typename": "Topic",
+            "name": "cognitive science"
+          },
+          {
+            "__typename": "Topic",
+            "name": "brain"
+          },
+          {
+            "__typename": "Topic",
+            "name": "science"
+          },
+          {
+            "__typename": "Topic",
+            "name": "personal growth"
+          },
+          {
+            "__typename": "Topic",
+            "name": "education"
+          },
+          {
+            "__typename": "Topic",
+            "name": "teaching"
+          }
+        ]
+      },
+      "speakers": {
+        "__typename": "AcmeSpeakerConnection",
+        "nodes": [
+          {
+            "__typename": "AcmeSpeaker",
+            "slug": "tania_lombrozo_TEDxNewEngland20251030-64343",
+            "firstname": "Tania",
+            "middlename": "",
+            "lastname": "Lombrozo",
+            "isLive": false
+          }
+        ]
+      },
+      "type": {
+        "__typename": "VideoKind",
+        "name": "TEDx Talk"
+      }
+    },
+    {
+      "__typename": "Video",
+      "id": "190678",
+      "title": "What if you could read the DNA of your future child?",
+      "slug": "noor_siddiqui_what_if_you_could_read_the_dna_of_your_future_child",
+      "primaryImageSet": [
+        {
+          "__typename": "PhotoSize",
+          "url": "https://pi.tedcdn.com/r/talkstar-assets.s3.amazonaws.com/production/talks/talk_190678/5d9cebbc-a466-4a48-a606-16845fb82103/NoorSiddiqui_2026-embed.jpg",
+          "aspectRatioName": "16x9"
+        },
+        {
+          "__typename": "PhotoSize",
+          "url": "https://pi.tedcdn.com/r/talkstar-assets.s3.amazonaws.com/production/talks/talk_190678/8a48c00d-f933-4ed9-a3df-9c2cd0886064/NoorSiddiqui_2026-stageshot.jpg",
+          "aspectRatioName": "4x3"
+        },
+        {
+          "__typename": "PhotoSize",
+          "url": "https://pi.tedcdn.com/r/talkstar-assets.s3.amazonaws.com/production/talks/talk_190678/85b77a2c-1275-43d4-9358-cd4ee9a6892b/NoorSiddiqui_2026-1350x675.jpg",
+          "aspectRatioName": "2x1"
+        }
+      ],
+      "presenterDisplayName": "Noor Siddiqui",
+      "duration": 781,
+      "videoContext": "TED2026",
+      "canonicalUrl": "https://www.ted.com/talks/noor_siddiqui_what_if_you_could_read_the_dna_of_your_future_child",
+      "hasDubbedStreams": false,
+      "viewedCount": 0,
+      "tedcomPercentage": "0.013",
+      "youtubePercentage": "0.0",
+      "podcastsPercentage": "0.979",
+      "tedappsPercentage": "0.008",
+      "publishedAt": "2026-10-19T14:23:51Z",
+      "recordedOn": "2026-04-15",
+      "topics": {
+        "__typename": "TopicConnection",
+        "nodes": [
+          {
+            "__typename": "Topic",
+            "name": "DNA"
+          },
+          {
+            "__typename": "Topic",
+            "name": "genetics"
+          },
+          {
+            "__typename": "Topic",
+            "name": "technology"
+          },
+          {
+            "__typename": "Topic",
+            "name": "science"
+          },
+          {
+            "__typename": "Topic",
+            "name": "health"
+          },
+          {
+            "__typename": "Topic",
+            "name": "medical research"
+          },
+          {
+            "__typename": "Topic",
+            "name": "health care"
+          },
+          {
+            "__typename": "Topic",
+            "name": "pregnancy"
+          },
+          {
+            "__typename": "Topic",
+            "name": "AI"
+          },
+          {
+            "__typename": "Topic",
+            "name": "disease"
+          }
+        ]
+      },
+      "speakers": {
+        "__typename": "AcmeSpeakerConnection",
+        "nodes": [
+          {
+            "__typename": "AcmeSpeaker",
+            "slug": "noor_siddiqui",
+            "firstname": "Noor",
+            "middlename": "",
+            "lastname": "Siddiqui",
+            "isLive": false
+          }
+        ]
+      },
+      "type": {
+        "__typename": "VideoKind",
+        "name": "TED Stage Talk"
+      }
+    },
+    {
+      "__typename": "Video",
+      "id": "190590",
+      "title": "Beyond the Talk: Michael Snyder on wearables, AI agents and the future of health care",
+      "slug": "michael_snyder_beyond_the_talk_michael_snyder_on_wearables_ai_agents_and_the_future_of_health_care",
+      "primaryImageSet": [
+        {
+          "__typename": "PhotoSize",
+          "url": "https://pi.tedcdn.com/r/talkstar-assets.s3.amazonaws.com/production/talks/talk_190590/bce0795c-21fd-4726-a816-84a8e8b809eb/MichaelSnyder_2026V-embed.jpg",
+          "aspectRatioName": "16x9"
+        },
+        {
+          "__typename": "PhotoSize",
+          "url": "https://pi.tedcdn.com/r/talkstar-assets.s3.amazonaws.com/production/talks/talk_190590/d1ad988d-3236-424f-bd5f-0892a1be52e6/MichaelSnyder_2026V-stageshot.jpg",
+          "aspectRatioName": "4x3"
+        },
+        {
+          "__typename": "PhotoSize",
+          "url": "https://pi.tedcdn.com/r/talkstar-assets.s3.amazonaws.com/production/talks/talk_190590/336bd9e3-aeee-46f3-b234-ff10bf901e90/MichaelSnyder_2026V-1350x675.jpg",
+          "aspectRatioName": "2x1"
+        }
+      ],
+      "presenterDisplayName": "Michael Snyder",
+      "duration": 1441,
+      "videoContext": "TED Tech",
+      "canonicalUrl": "https://www.ted.com/talks/michael_snyder_beyond_the_talk_michael_snyder_on_wearables_ai_agents_and_the_future_of_health_care",
+      "hasDubbedStreams": false,
+      "viewedCount": 3336,
+      "tedcomPercentage": "0.491",
+      "youtubePercentage": "0.0",
+      "podcastsPercentage": "0.0",
+      "tedappsPercentage": "0.509",
+      "publishedAt": "2026-10-16T14:59:12Z",
+      "recordedOn": "2026-04-15",
+      "topics": {
+        "__typename": "TopicConnection",
+        "nodes": [
+          {
+            "__typename": "Topic",
+            "name": "health"
+          },
+          {
+            "__typename": "Topic",
+            "name": "technology"
+          },
+          {
+            "__typename": "Topic",
+            "name": "AI"
+          },
+          {
+            "__typename": "Topic",
+            "name": "science"
+          },
+          {
+            "__typename": "Topic",
+            "name": "innovation"
+          },
+          {
+            "__typename": "Topic",
+            "name": "medicine"
+          },
+          {
+            "__typename": "Topic",
+            "name": "medical research"
+          }
+        ]
+      },
+      "speakers": {
+        "__typename": "AcmeSpeakerConnection",
+        "nodes": [
+          {
+            "__typename": "AcmeSpeaker",
+            "slug": "michael_snyder",
+            "firstname": "Michael",
+            "middlename": "",
+            "lastname": "Snyder",
+            "isLive": false
+          },
+          {
+            "__typename": "AcmeSpeaker",
+            "slug": "sherrell_dorsey",
+            "firstname": "Sherrell",
+            "middlename": "",
+            "lastname": "Dorsey",
+            "isLive": false
+          }
+        ]
+      },
+      "type": {
+        "__typename": "VideoKind",
+        "name": "Original Content"
+      }
+    },
+    {
+      "__typename": "Video",
+      "id": "188981",
+      "title": "How to stop homelessness before it starts",
+      "slug": "jen_loving_how_to_stop_homelessness_before_it_starts",
+      "primaryImageSet": [
+        {
+          "__typename": "PhotoSize",
+          "url": "https://pi.tedcdn.com/r/talkstar-assets.s3.amazonaws.com/production/talks/talk_188981/0851338a-c0ca-4745-9a7c-79348a7e2aef/JenLoving_2026-embed.jpg",
+          "aspectRatioName": "16x9"
+        },
+        {
+          "__typename": "PhotoSize",
+          "url": "https://pi.tedcdn.com/r/talkstar-assets.s3.amazonaws.com/production/talks/talk_188981/54de0fd7-1df3-4972-a432-9543249c88aa/JenLoving_2026-stageshot.jpg",
+          "aspectRatioName": "4x3"
+        },
+        {
+          "__typename": "PhotoSize",
+          "url": "https://pi.tedcdn.com/r/talkstar-assets.s3.amazonaws.com/production/talks/talk_188981/58886327-e488-43e6-9584-f0686162c6c3/JenLoving_2026-1350x675.jpg",
+          "aspectRatioName": "2x1"
+        }
+      ],
+      "presenterDisplayName": "Jen Loving",
+      "duration": 548,
+      "videoContext": "TED2026",
+      "canonicalUrl": "https://www.ted.com/talks/jen_loving_how_to_stop_homelessness_before_it_starts",
+      "hasDubbedStreams": false,
+      "viewedCount": 90558,
+      "tedcomPercentage": "0.072",
+      "youtubePercentage": "0.0",
+      "podcastsPercentage": "0.902",
+      "tedappsPercentage": "0.026",
+      "publishedAt": "2026-10-15T15:33:55Z",
+      "recordedOn": "2026-04-17",
+      "topics": {
+        "__typename": "TopicConnection",
+        "nodes": [
+          {
+            "__typename": "Topic",
+            "name": "homelessness"
+          },
+          {
+            "__typename": "Topic",
+            "name": "social change"
+          },
+          {
+            "__typename": "Topic",
+            "name": "society"
+          },
+          {
+            "__typename": "Topic",
+            "name": "community"
+          },
+          {
+            "__typename": "Topic",
+            "name": "The Audacious Project"
+          },
+          {
+            "__typename": "Topic",
+            "name": "policy"
+          },
+          {
+            "__typename": "Topic",
+            "name": "cities"
+          },
+          {
+            "__typename": "Topic",
+            "name": "government"
+          }
+        ]
+      },
+      "speakers": {
+        "__typename": "AcmeSpeakerConnection",
+        "nodes": [
+          {
+            "__typename": "AcmeSpeaker",
+            "slug": "jen_loving",
+            "firstname": "Jen",
+            "middlename": "",
+            "lastname": "Loving",
+            "isLive": false
+          }
+        ]
+      },
+      "type": {
+        "__typename": "VideoKind",
+        "name": "TED Stage Talk"
+      }
+    },
+    {
+      "__typename": "Video",
+      "id": "190833",
+      "title": "Is your body language working against you?",
+      "slug": "cara_hale_alter_is_your_body_language_working_against_you",
+      "primaryImageSet": [
+        {
+          "__typename": "PhotoSize",
+          "url": "https://pi.tedcdn.com/r/talkstar-assets.s3.amazonaws.com/production/talks/talk_190833/baca1374-84dd-46c4-9550-43eae506632d/CaraHaleAlter_2026X-embed.jpg",
+          "aspectRatioName": "16x9"
+        },
+        {
+          "__typename": "PhotoSize",
+          "url": "https://pi.tedcdn.com/r/talkstar-assets.s3.amazonaws.com/production/talks/talk_190833/4dd810dc-9419-4fb8-a8e1-d9aa2d4b357f/CaraHaleAlter_2026X-stageshot.jpg",
+          "aspectRatioName": "4x3"
+        },
+        {
+          "__typename": "PhotoSize",
+          "url": "https://pi.tedcdn.com/r/talkstar-assets.s3.amazonaws.com/production/talks/talk_190833/1e8ac584-e46c-47e6-b2f0-7336b05e0336/CaraHaleAlter_2026X-1350x675.jpg",
+          "aspectRatioName": "2x1"
+        }
+      ],
+      "presenterDisplayName": "Cara Hale Alter",
+      "duration": 987,
+      "videoContext": "TEDxUofW",
+      "canonicalUrl": "https://www.ted.com/talks/cara_hale_alter_is_your_body_language_working_against_you",
+      "hasDubbedStreams": false,
+      "viewedCount": 100741,
+      "tedcomPercentage": "0.111",
+      "youtubePercentage": "0.0",
+      "podcastsPercentage": "0.851",
+      "tedappsPercentage": "0.038",
+      "publishedAt": "2026-10-14T15:00:39Z",
+      "recordedOn": "2026-04-19",
+      "topics": {
+        "__typename": "TopicConnection",
+        "nodes": [
+          {
+            "__typename": "Topic",
+            "name": "personal growth"
+          },
+          {
+            "__typename": "Topic",
+            "name": "business"
+          },
+          {
+            "__typename": "Topic",
+            "name": "cognitive science"
+          },
+          {
+            "__typename": "Topic",
+            "name": "communication"
+          },
+          {
+            "__typename": "Topic",
+            "name": "leadership"
+          },
+          {
+            "__typename": "Topic",
+            "name": "society"
+          },
+          {
+            "__typename": "Topic",
+            "name": "culture"
+          }
+        ]
+      },
+      "speakers": {
+        "__typename": "AcmeSpeakerConnection",
+        "nodes": [
+          {
+            "__typename": "AcmeSpeaker",
+            "slug": "cara_hale_alter_TEDxUofW20260419-67213",
+            "firstname": "Cara",
+            "middlename": "",
+            "lastname": "Hale Alter",
+            "isLive": false
+          }
+        ]
+      },
+      "type": {
+        "__typename": "VideoKind",
+        "name": "TEDx Talk"
+      }
+    }
+  ]
+}
