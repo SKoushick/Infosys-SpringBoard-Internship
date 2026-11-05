@@ -1,0 +1,6 @@
+Capability,Coverage %,Possible use
+Transcript content,96.62745098039215,Text similarity / semantic representation
+Descriptions,100.0,Fallback content representation
+Topic tags,100.0,Topic matching and user-selected interests
+Talk identity,100.0,Stable talk identity
+Popularity,100.0,Secondary ranking feature
