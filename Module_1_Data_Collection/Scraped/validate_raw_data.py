@@ -71,9 +71,9 @@ def audit_raw_dataset(file_path: Path):
 
 
 if __name__ == "__main__":
-    # Path relative to script execution in VS Code root
-    raw_path = Path("Scraped/Data/Raw/ted_talks.csv")
+    base_dir = Path(__file__).resolve().parent
+    raw_path = base_dir / "Data" / "Raw" / "ted_talks.csv"
     if not raw_path.exists():
-        # Fallback if executed directly from inside Scraped/
-        raw_path = Path("Data/Raw/ted_talks.csv")
+        # Fallback relative to project root
+        raw_path = Path("Module_1_Data_Collection/Scraped/Data/Raw/ted_talks.csv")
     audit_raw_dataset(raw_path)

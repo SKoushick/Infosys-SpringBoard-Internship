@@ -1,4 +1,31 @@
+# Python Virtual Environments
 venv/
+env/
+ENV/
+.venv/
+
+# Byte-compiled / optimized files
 __pycache__/
+*.py[cod]
+*$py.class
 *.pyc
+
+# Environment & Credentials
 .env
+*.env
+*.pem
+*.key
+
+# Jupyter Notebook Checkpoints & Cache
+.ipynb_checkpoints/
+.pytest_cache/
+
+# Large Model & Matrix Artifacts (Regenerable via Module 4 train_and_benchmark.py)
+*.npz
+*.joblib
+*.npy
+Module_3_Feature_Engineering_Vectorization/embeddings/
+Module_3_Feature_Engineering_Vectorization/features/ted_talks_features.csv
+Module_4_Recommendation_Engine/models/*.npy
+Module_4_Recommendation_Engine/models/*.joblib
+Module_4_Recommendation_Engine/models/*.npz

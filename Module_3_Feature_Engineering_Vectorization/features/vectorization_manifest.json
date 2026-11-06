@@ -1,0 +1,18 @@
+{
+  "n_records": 2550,
+  "feature_dim": 44613,
+  "fields": [
+    "title",
+    "description",
+    "tags",
+    "transcript"
+  ],
+  "saved_paths": {
+    "title_vectorizer": "C:\\Users\\DELL\\Desktop\\INTERNSHIPS\\Infosys_SpringBoard\\Ted_Talk_Recommendation\\Module_3_Feature_Engineering_Vectorization\\models\\title_tfidf_vectorizer.joblib",
+    "description_vectorizer": "C:\\Users\\DELL\\Desktop\\INTERNSHIPS\\Infosys_SpringBoard\\Ted_Talk_Recommendation\\Module_3_Feature_Engineering_Vectorization\\models\\description_tfidf_vectorizer.joblib",
+    "tags_vectorizer": "C:\\Users\\DELL\\Desktop\\INTERNSHIPS\\Infosys_SpringBoard\\Ted_Talk_Recommendation\\Module_3_Feature_Engineering_Vectorization\\models\\tags_tfidf_vectorizer.joblib",
+    "transcript_vectorizer": "C:\\Users\\DELL\\Desktop\\INTERNSHIPS\\Infosys_SpringBoard\\Ted_Talk_Recommendation\\Module_3_Feature_Engineering_Vectorization\\models\\transcript_tfidf_vectorizer.joblib",
+    "combined_tfidf_matrix": "C:\\Users\\DELL\\Desktop\\INTERNSHIPS\\Infosys_SpringBoard\\Ted_Talk_Recommendation\\Module_3_Feature_Engineering_Vectorization\\features\\combined_tfidf_matrix.npz",
+    "talk_ids_manifest": "C:\\Users\\DELL\\Desktop\\INTERNSHIPS\\Infosys_SpringBoard\\Ted_Talk_Recommendation\\Module_3_Feature_Engineering_Vectorization\\features\\talk_ids_manifest.npy"
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "dataset_summary": {
+    "total_talks": 2550,
+    "columns": [
+      "talk_id",
+      "title",
+      "main_speaker",
+      "speaker_occupation",
+      "description",
+      "tags",
+      "transcript",
+      "related_talks",
+      "ratings",
+      "views",
+      "comments",
+      "duration",
+      "published_date",
+      "event",
+      "url",
+      "source",
+      "film_date",
+      "languages",
+      "name",
+      "num_speaker",
+      "tags_list",
+      "tag_count",
+      "tags_text",
+      "title_clean",
+      "description_clean",
+      "transcript_clean",
+      "speaker_clean",
+      "published_datetime",
+      "published_year",
+      "published_month",
+      "duration_minutes",
+      "title_word_count",
+      "title_char_count",
+      "description_word_count",
+      "description_char_count",
+      "transcript_word_count",
+      "transcript_char_count",
+      "has_transcript",
+      "has_description",
+      "has_tags",
+      "content_field_count",
+      "content_text",
+      "content_word_count",
+      "title_processed",
+      "description_processed",
+      "tags_processed",
+      "transcript_processed",
+      "combined_text",
+      "content_text_fallback",
+      "uses_fallback",
+      "title_processed_word_count",
+      "title_processed_char_count",
+      "description_processed_word_count",
+      "description_processed_char_count",
+      "tags_processed_word_count",
+      "tags_processed_char_count",
+      "transcript_processed_word_count",
+      "transcript_processed_char_count",
+      "combined_text_word_count",
+      "combined_text_char_count"
+    ],
+    "missing_transcripts": 86
+  },
+  "artifact_shapes": {
+    "combined_tfidf_matrix": [
+      2550,
+      44613
+    ],
+    "embedding_matrix": [
+      2550,
+      384
+    ]
+  },
+  "timing_and_latency": {
+    "tfidf_fit_seconds": 18.19,
+    "embedding_generation_seconds": 0.02,
+    "recommender_init_seconds": 2.152,
+    "average_latency_ms": {
+      "tfidf": 30.07,
+      "semantic": 15.66,
+      "hybrid_with_mmr": 67.4
+    }
+  },
+  "editorial_benchmark_metrics": {
+    "tfidf_model": {
+      "Precision@10": 0.004,
+      "Recall@10": 0.0067,
+      "NDCG@10": 0.0067,
+      "MAP@10": 0.003,
+      "HitRate@10": 0.03,
+      "n_evaluated_talks": 100
+    },
+    "semantic_model": {
+      "Precision@10": 0.005,
+      "Recall@10": 0.0083,
+      "NDCG@10": 0.0062,
+      "MAP@10": 0.0019,
+      "HitRate@10": 0.05,
+      "n_evaluated_talks": 100
+    }
+  },
+  "collaborative_filtering_assessment": {
+    "has_user_ids": false,
+    "has_individual_ratings": false,
+    "has_user_sessions": false,
+    "ratings_column_type": "aggregate_tag_counts (e.g., [{'name': 'Inspiring', 'count': 1234}])",
+    "verdict": "UNSUPPORTED_DATA_ABSENT",
+    "rationale": "The current TED Talk dataset provides only aggregate talk-level metrics (view counts, comment counts, and aggregate rating emotion tallies). No individual user identifiers or user-item interaction histories exist. In accordance with research integrity standards, no synthetic users or interactions are fabricated. Collaborative filtering cannot be trained until user-level logs are collected.",
+    "future_schema_definition": {
+      "user_id": "string (unique anonymous user identifier)",
+      "talk_id": "integer (foreign key matching talk_id in TED talks master catalog)",
+      "interaction_type": "string (view, bookmark, like, share, completed_watch)",
+      "watch_duration_seconds": "integer (dwell time on the talk video)",
+      "rating": "optional float [1.0 - 5.0] or explicit binary thumbs_up/down",
+      "timestamp": "ISO-8601 UTC timestamp"
+    }
+  }
+}

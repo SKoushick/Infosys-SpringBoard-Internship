@@ -1,0 +1,11 @@
+query_or_seed_talk_id,query_or_seed_title,candidate_talk_id,candidate_title,relevance_grade,annotator_notes
+1,Do schools kill creativity?,865,Bring on the learning revolution!,3,Ken Robinson follow-up talk directly on transforming education and creativity
+1,Do schools kill creativity?,1738,How to escape education's death valley,3,Ken Robinson third talk on education and organic learning
+1,Do schools kill creativity?,685,The child-driven education,2,Sugata Mitra talk on self-directed learning and school reform
+1,Do schools kill creativity?,92,The birth of Wikipedia,1,Jimmy Wales on open collaborative knowledge
+1,Do schools kill creativity?,3,Simplicity sells,0,Consumer product design - unrelated to education or creativity pedagogy
+2,Averting the climate crisis,243,New thinking on the climate crisis,3,Al Gore direct sequel on environmental strategy
+2,Averting the climate crisis,501,What's the carbon footprint of a hamburger?,2,Environmental impact of agriculture and carbon emissions
+2,Averting the climate crisis,4,Greening the ghetto,2,Majora Carter on sustainable urban development and environmental justice
+2,Averting the climate crisis,1,Do schools kill creativity?,0,Pedagogy and arts education - unrelated to climate crisis
+
