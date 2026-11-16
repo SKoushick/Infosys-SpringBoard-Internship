@@ -7,9 +7,11 @@ import pytest
 
 from ted_recommender.config import FEATURES_CSV_PATH, RAW_DATA_PATH
 from ted_recommender.data import (
+    compute_dataset_fingerprint,
     load_dataset,
     validate_dataset,
     verify_row_alignment,
+    verify_talk_id_alignment,
     parse_tags,
     clean_text_light,
     clean_text_aggressive,
@@ -76,4 +78,26 @@ def test_text_cleaning():
     assert "<p>" not in aggr
     assert "https" not in aggr
     assert "not boring" in aggr
+
+
+def test_talk_id_alignment_and_fingerprint():
+    """Verify exact 1-to-1 talk ID alignment and fingerprint generation."""
+    df = pd.DataFrame({"talk_id": [101, 102, 103], "title": ["A", "B", "C"]})
+    matching_ids = np.array([101, 102, 103])
+    scrambled_ids = np.array([103, 102, 101])
+    diff_length_ids = np.array([101, 102])
+
+    assert verify_talk_id_alignment(df, matching_ids, "test_matching") is True
+
+    with pytest.raises(ValueError, match="Row count mismatch"):
+        verify_talk_id_alignment(df, diff_length_ids, "test_length")
+
+    with pytest.raises(ValueError, match="Row ID mismatch"):
+        verify_talk_id_alignment(df, scrambled_ids, "test_scrambled")
+
+    fp = compute_dataset_fingerprint(df)
+    assert isinstance(fp, str) and len(fp) == 16
+    # Same data must produce identical fingerprint
+    assert compute_dataset_fingerprint(df) == fp
+
 

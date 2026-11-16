@@ -1,0 +1,146 @@
+{
+  "tfidf": {
+    "model_id": "tfidf",
+    "display_name": "TF-IDF Content-Based",
+    "num_queries_evaluated": 100,
+    "ranking_accuracy": {
+      "Precision@5": 0.002,
+      "Precision@10": 0.004,
+      "Precision@20": 0.003,
+      "Recall@5": 0.002,
+      "Recall@10": 0.0077,
+      "Recall@20": 0.011,
+      "F1@10": 0.0052,
+      "NDCG@5": 0.0034,
+      "NDCG@10": 0.0063,
+      "NDCG@20": 0.0077,
+      "MAP@10": 0.0026,
+      "HitRate@5": 0.01,
+      "HitRate@10": 0.04,
+      "HitRate@20": 0.06,
+      "MRR@10": 0.0132
+    },
+    "diversity_and_coverage": {
+      "IntraListDiversity@10": 0.6851,
+      "TopicEntropy@10": 0.9129,
+      "CatalogueCoverageRatio": 0.5188,
+      "UniqueItemsRecommended": 1323,
+      "RecommendationNoveltyBits": 11.8556,
+      "GiniExposureIndex": 0.6063
+    },
+    "performance_and_integrity": {
+      "MeanLatencyMs": 26.59,
+      "MedianLatencyMs": 24.5,
+      "P95LatencyMs": 42.07,
+      "IntegrityCleanRate": 1.0
+    }
+  },
+  "semantic": {
+    "model_id": "semantic",
+    "display_name": "Sentence-BERT Semantic",
+    "num_queries_evaluated": 100,
+    "ranking_accuracy": {
+      "Precision@5": 0.004,
+      "Precision@10": 0.004,
+      "Precision@20": 0.0025,
+      "Recall@5": 0.0037,
+      "Recall@10": 0.0073,
+      "Recall@20": 0.009,
+      "F1@10": 0.0052,
+      "NDCG@5": 0.0035,
+      "NDCG@10": 0.0053,
+      "NDCG@20": 0.0061,
+      "MAP@10": 0.0018,
+      "HitRate@5": 0.02,
+      "HitRate@10": 0.04,
+      "HitRate@20": 0.05,
+      "MRR@10": 0.0094
+    },
+    "diversity_and_coverage": {
+      "IntraListDiversity@10": 0.5597,
+      "TopicEntropy@10": 0.9378,
+      "CatalogueCoverageRatio": 0.4898,
+      "UniqueItemsRecommended": 1249,
+      "RecommendationNoveltyBits": 11.8498,
+      "GiniExposureIndex": 0.6377
+    },
+    "performance_and_integrity": {
+      "MeanLatencyMs": 19.49,
+      "MedianLatencyMs": 17.87,
+      "P95LatencyMs": 32.23,
+      "IntegrityCleanRate": 1.0
+    }
+  },
+  "hybrid": {
+    "model_id": "hybrid",
+    "display_name": "Hybrid Multi-Signal",
+    "num_queries_evaluated": 100,
+    "ranking_accuracy": {
+      "Precision@5": 0.004,
+      "Precision@10": 0.004,
+      "Precision@20": 0.0025,
+      "Recall@5": 0.004,
+      "Recall@10": 0.0073,
+      "Recall@20": 0.009,
+      "F1@10": 0.0052,
+      "NDCG@5": 0.0055,
+      "NDCG@10": 0.0076,
+      "NDCG@20": 0.0084,
+      "MAP@10": 0.0035,
+      "HitRate@5": 0.02,
+      "HitRate@10": 0.04,
+      "HitRate@20": 0.05,
+      "MRR@10": 0.0181
+    },
+    "diversity_and_coverage": {
+      "IntraListDiversity@10": 0.5763,
+      "TopicEntropy@10": 0.9246,
+      "CatalogueCoverageRatio": 0.5059,
+      "UniqueItemsRecommended": 1290,
+      "RecommendationNoveltyBits": 11.8411,
+      "GiniExposureIndex": 0.6206
+    },
+    "performance_and_integrity": {
+      "MeanLatencyMs": 40.05,
+      "MedianLatencyMs": 32.99,
+      "P95LatencyMs": 74.65,
+      "IntegrityCleanRate": 1.0
+    }
+  },
+  "hybrid_mmr": {
+    "model_id": "hybrid_mmr",
+    "display_name": "Hybrid Multi-Signal + MMR",
+    "num_queries_evaluated": 100,
+    "ranking_accuracy": {
+      "Precision@5": 0.006,
+      "Precision@10": 0.004,
+      "Precision@20": 0.003,
+      "Recall@5": 0.0053,
+      "Recall@10": 0.0073,
+      "Recall@20": 0.011,
+      "F1@10": 0.0052,
+      "NDCG@5": 0.0065,
+      "NDCG@10": 0.0074,
+      "NDCG@20": 0.0091,
+      "MAP@10": 0.0033,
+      "HitRate@5": 0.03,
+      "HitRate@10": 0.04,
+      "HitRate@20": 0.06,
+      "MRR@10": 0.0175
+    },
+    "diversity_and_coverage": {
+      "IntraListDiversity@10": 0.6953,
+      "TopicEntropy@10": 0.936,
+      "CatalogueCoverageRatio": 0.5416,
+      "UniqueItemsRecommended": 1381,
+      "RecommendationNoveltyBits": 11.8487,
+      "GiniExposureIndex": 0.58
+    },
+    "performance_and_integrity": {
+      "MeanLatencyMs": 54.38,
+      "MedianLatencyMs": 51.03,
+      "P95LatencyMs": 79.45,
+      "IntegrityCleanRate": 1.0
+    }
+  }
+}

@@ -78,6 +78,26 @@ class TfidfConfig:
     tags_max_features: int = 5000
     transcript_max_features: int = 30000
 
+    def validate(self) -> None:
+        """Validate parameter ranges and types."""
+        if not isinstance(self.max_features, int) or self.max_features <= 0:
+            raise ValueError(f"max_features must be a positive integer, got {self.max_features}")
+        if not (isinstance(self.ngram_range, tuple) and len(self.ngram_range) == 2 and 
+                isinstance(self.ngram_range[0], int) and isinstance(self.ngram_range[1], int) and
+                1 <= self.ngram_range[0] <= self.ngram_range[1]):
+            raise ValueError(f"ngram_range must be a tuple (min_n, max_n) with 1 <= min_n <= max_n, got {self.ngram_range}")
+        if not isinstance(self.min_df, int) or self.min_df < 1:
+            raise ValueError(f"min_df must be an integer >= 1, got {self.min_df}")
+        if not (isinstance(self.max_df, (int, float)) and 0.0 < self.max_df <= 1.0):
+            raise ValueError(f"max_df proportion must be in range (0.0, 1.0], got {self.max_df}")
+        for f in ("title_max_features", "description_max_features", "tags_max_features", "transcript_max_features"):
+            val = getattr(self, f)
+            if not isinstance(val, int) or val <= 0:
+                raise ValueError(f"{f} must be a positive integer, got {val}")
+
+    def __post_init__(self) -> None:
+        self.validate()
+
     def to_dict(self) -> dict:
         return {
             "max_features": self.max_features,
@@ -112,6 +132,19 @@ class FieldWeights:
     description: float = 0.25
     tags: float = 0.30
     transcript: float = 0.25
+
+    def validate(self) -> None:
+        """Ensure all weights are non-negative and sum to > 0."""
+        for f in ("title", "description", "tags", "transcript"):
+            val = getattr(self, f)
+            if not isinstance(val, (int, float)) or val < 0.0:
+                raise ValueError(f"Field weight '{f}' must be a non-negative float, got {val}")
+        total = self.title + self.description + self.tags + self.transcript
+        if total <= 0.0:
+            raise ValueError(f"Sum of field weights must be strictly positive, got {total}")
+
+    def __post_init__(self) -> None:
+        self.validate()
 
     def to_dict(self) -> dict:
         return {
@@ -157,6 +190,26 @@ class RecommenderConfig:
     # TF-IDF configuration
     tfidf_config: TfidfConfig = field(default_factory=TfidfConfig)
 
+    def validate(self) -> None:
+        """Validate parameter ranges and types across all settings."""
+        if not isinstance(self.top_k, int) or self.top_k <= 0:
+            raise ValueError(f"top_k must be a positive integer, got {self.top_k}")
+        if not isinstance(self.mmr_lambda, (int, float)) or not (0.0 <= float(self.mmr_lambda) <= 1.0):
+            raise ValueError(f"mmr_lambda must be in range [0.0, 1.0], got {self.mmr_lambda}")
+        if not isinstance(self.tfidf_weight, (int, float)) or float(self.tfidf_weight) < 0.0:
+            raise ValueError(f"tfidf_weight must be non-negative, got {self.tfidf_weight}")
+        if not isinstance(self.semantic_weight, (int, float)) or float(self.semantic_weight) < 0.0:
+            raise ValueError(f"semantic_weight must be non-negative, got {self.semantic_weight}")
+        if float(self.tfidf_weight) + float(self.semantic_weight) <= 0.0:
+            raise ValueError("Sum of tfidf_weight and semantic_weight must be strictly positive.")
+        if not isinstance(self.embedding_max_seq_length, int) or self.embedding_max_seq_length <= 0:
+            raise ValueError(f"embedding_max_seq_length must be a positive integer, got {self.embedding_max_seq_length}")
+        self.field_weights.validate()
+        self.tfidf_config.validate()
+
+    def __post_init__(self) -> None:
+        self.validate()
+
     def to_dict(self) -> dict:
         return {
             "top_k": self.top_k,
@@ -180,11 +233,13 @@ class RecommenderConfig:
 
     @classmethod
     def load(cls, path: Optional[Path] = None) -> "RecommenderConfig":
-        """Load configuration from JSON, falling back to defaults."""
+        """Load configuration from JSON, validating all parameters, falling back to defaults."""
         if path is None:
             path = PROJECT_ROOT / "config" / "recommender_config.json"
         if not path.exists():
-            return cls()
+            default_cfg = cls()
+            default_cfg.save(path)
+            return default_cfg
         with open(path, "r", encoding="utf-8") as f:
             d = json.load(f)
         fw = FieldWeights(**d.get("field_weights", {}))
@@ -194,7 +249,7 @@ class RecommenderConfig:
         })
         if "ngram_range" in d.get("tfidf_config", {}):
             tc.ngram_range = tuple(d["tfidf_config"]["ngram_range"])
-        return cls(
+        cfg = cls(
             top_k=d.get("top_k", 10),
             mmr_lambda=d.get("mmr_lambda", 0.7),
             tfidf_weight=d.get("tfidf_weight", 0.5),
@@ -204,4 +259,6 @@ class RecommenderConfig:
             field_weights=fw,
             tfidf_config=tc,
         )
+        cfg.validate()
+        return cfg
 

@@ -1,0 +1,67 @@
+{
+  "project_name": "Personalized TED Talks Recommendation System - Module 5 Evaluation Metrics",
+  "version": "1.0.0",
+  "random_seed": 42,
+  "data_paths": {
+    "features_dataset": "Module_1_Data_Collection/Scraped/Data/Processed/ted_talks_features.csv",
+    "preprocessed_dataset": "Module_1_Data_Collection/Scraped/Data/Processed/ted_talks_preprocessed.csv",
+    "clean_dataset": "Module_1_Data_Collection/Scraped/Data/Processed/ted_talks_clean.csv",
+    "raw_dataset": "Module_1_Data_Collection/Scraped/Data/Raw/ted_talks.csv",
+    "prepared_evaluation_dataset": "Module_5_Evaluation_Metrics/data/processed/evaluation_ground_truth.json"
+  },
+  "artifact_paths": {
+    "tfidf_models_dir": "Module_3_Feature_Engineering_Vectorization/models",
+    "tfidf_features_dir": "Module_3_Feature_Engineering_Vectorization/features",
+    "embeddings_cache": "Module_3_Feature_Engineering_Vectorization/embeddings/ted_semantic_embeddings.npy",
+    "module4_models_dir": "Module_4_Recommendation_Engine/models"
+  },
+  "evaluation_parameters": {
+    "sample_query_count": 100,
+    "full_eval_max_queries": 500,
+    "k_values": [5, 10, 20],
+    "default_k": 10,
+    "exclude_self": true,
+    "relevance_proxy_column": "related_talks",
+    "binary_relevance_threshold": 1,
+    "graded_relevance_scale": {
+      "0": "Not relevant",
+      "1": "Slightly relevant",
+      "2": "Relevant",
+      "3": "Highly relevant"
+    }
+  },
+  "models_to_evaluate": [
+    {
+      "model_id": "tfidf",
+      "display_name": "TF-IDF Content-Based",
+      "description": "Multi-field lexical TF-IDF with L2-normalized cosine similarity",
+      "apply_mmr": false
+    },
+    {
+      "model_id": "semantic",
+      "display_name": "Sentence-BERT Semantic",
+      "description": "384-dimensional dense semantic embeddings using all-MiniLM-L6-v2",
+      "apply_mmr": false
+    },
+    {
+      "model_id": "hybrid",
+      "display_name": "Hybrid Multi-Signal (No MMR)",
+      "description": "Linear combination (0.5 TF-IDF + 0.5 Semantic) without diversity reranking",
+      "apply_mmr": false,
+      "tfidf_weight": 0.5,
+      "semantic_weight": 0.5
+    },
+    {
+      "model_id": "hybrid_mmr",
+      "display_name": "Hybrid Multi-Signal + MMR",
+      "description": "Linear combination (0.5 TF-IDF + 0.5 Semantic) with Maximal Marginal Relevance (lambda=0.7)",
+      "apply_mmr": true,
+      "mmr_lambda": 0.7,
+      "tfidf_weight": 0.5,
+      "semantic_weight": 0.5
+    }
+  ],
+  "results_dir": "Module_5_Evaluation_Metrics/results",
+  "disclaimer": "TED editorial related talks serve as an automated proxy relevance benchmark. Without real per-user interaction logs, proxy metrics provide defensible relative model comparisons rather than live user satisfaction claims."
+}
+

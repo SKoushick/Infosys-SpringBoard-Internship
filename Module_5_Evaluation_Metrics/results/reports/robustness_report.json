@@ -1,0 +1,68 @@
+{
+  "total_checks": 12,
+  "passed_checks": 12,
+  "failed_checks": 0,
+  "all_passed": true,
+  "test_cases": [
+    {
+      "case_name": "Valid Seed Talk ID",
+      "status": "PASS",
+      "details": "Generated 5 valid recommendations excluding seed 1."
+    },
+    {
+      "case_name": "Unknown Talk ID",
+      "status": "PASS",
+      "details": "Correctly raised KeyError for non-existent talk ID."
+    },
+    {
+      "case_name": "Missing Transcript Talk",
+      "status": "PASS",
+      "details": "Successfully recommended for talk 59 using metadata fallback."
+    },
+    {
+      "case_name": "Empty Search Query",
+      "status": "PASS",
+      "details": "Correctly returned empty list for empty/whitespace search queries."
+    },
+    {
+      "case_name": "Single Character Query",
+      "status": "PASS",
+      "details": "Handled single character query safely (returned 3 items)."
+    },
+    {
+      "case_name": "Extremely Long Query",
+      "status": "PASS",
+      "details": "Successfully handled 4000+ character query with 5 results."
+    },
+    {
+      "case_name": "Non-existent Tag Filter",
+      "status": "PASS",
+      "details": "Correctly returned empty list when filter tags match 0 catalog items."
+    },
+    {
+      "case_name": "High K Exceeding Pool",
+      "status": "PASS",
+      "details": "Handled top_k=50000 safely, returning exactly 2549 items."
+    },
+    {
+      "case_name": "Disliked Exclusions",
+      "status": "PASS",
+      "details": "Zero violations: disliked talks [2, 3, 4] and seed 1 were strictly omitted."
+    },
+    {
+      "case_name": "Multiple Liked Profile",
+      "status": "PASS",
+      "details": "Successfully personalized across 3 liked talks; all liked talks excluded."
+    },
+    {
+      "case_name": "Cold-Start Popularity Fallback",
+      "status": "PASS",
+      "details": "Returned top viewed talks with explicit cold-start explanation rationale."
+    },
+    {
+      "case_name": "Extreme MMR Diversification",
+      "status": "PASS",
+      "details": "Both MMR-diversified and direct relevance rankings executed cleanly."
+    }
+  ]
+}

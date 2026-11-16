@@ -67,7 +67,7 @@ def main():
     # 3. Fit TF-IDF Pipeline
     logger.info("[3/7] Fitting TF-IDF vectorizers across all 2550 talks...")
     t0_tfidf = time.time()
-    config = RecommenderConfig()
+    config = RecommenderConfig.load()
     pipeline = FeaturePipeline(tfidf_config=config.tfidf_config, field_weights=config.field_weights)
     _, combined_matrix = pipeline.fit_transform_tfidf(df)
     tfidf_time = time.time() - t0_tfidf
@@ -135,18 +135,60 @@ def main():
     evaluator = RecommendationEvaluator(ground_truth)
     sample_eval_ids = [t for t in ground_truth.keys() if t <= 500][:100]
 
-    eval_tfidf = evaluator.evaluate_recommender(tfidf_rec, sample_eval_ids, k=10)
-    eval_semantic = evaluator.evaluate_recommender(semantic_rec, sample_eval_ids, k=10)
-    eval_hybrid = evaluator.evaluate_recommender(hybrid_rec.tfidf_rec, sample_eval_ids, k=10)
+    eval_tfidf = evaluator.evaluate_recommender(
+        tfidf_rec, sample_eval_ids, k=10, feature_matrix=embeddings, id_to_idx=tfidf_rec.id_to_idx
+    )
+    eval_semantic = evaluator.evaluate_recommender(
+        semantic_rec, sample_eval_ids, k=10, feature_matrix=embeddings, id_to_idx=semantic_rec.id_to_idx
+    )
+    eval_hybrid_mmr = evaluator.evaluate_recommender(
+        hybrid_rec, sample_eval_ids, k=10, feature_matrix=embeddings, id_to_idx=hybrid_rec.id_to_idx
+    )
 
-    logger.info(f"TF-IDF Evaluation: {eval_tfidf}")
-    logger.info(f"Semantic Evaluation: {eval_semantic}")
+    class HybridDirectWrapper:
+        def __init__(self, recommender):
+            self.rec = recommender
+        def recommend_for_talk(self, talk_id: int, top_k: int = 10):
+            return self.rec.recommend_for_talk(talk_id=talk_id, top_k=top_k, apply_mmr=False)
+
+    eval_hybrid_direct = evaluator.evaluate_recommender(
+        HybridDirectWrapper(hybrid_rec), sample_eval_ids, k=10, feature_matrix=embeddings, id_to_idx=hybrid_rec.id_to_idx
+    )
+
+    logger.info(f"TF-IDF Evaluation (k=10): {eval_tfidf}")
+    logger.info(f"Semantic Evaluation (k=10): {eval_semantic}")
+    logger.info(f"Hybrid with MMR Evaluation (k=10): {eval_hybrid_mmr}")
+    logger.info(f"Hybrid Direct (no MMR) Evaluation (k=10): {eval_hybrid_direct}")
+
+    # Environment and package metadata
+    import importlib.metadata
+    def get_pkg_version(pkg_name: str) -> str:
+        try:
+            return importlib.metadata.version(pkg_name)
+        except Exception:
+            return "not_found"
+
+    environment_meta = {
+        "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "python_version": sys.version,
+        "platform": sys.platform,
+        "packages": {
+            "scikit-learn": get_pkg_version("scikit-learn"),
+            "sentence-transformers": get_pkg_version("sentence-transformers"),
+            "torch": get_pkg_version("torch"),
+            "scipy": get_pkg_version("scipy"),
+            "numpy": get_pkg_version("numpy"),
+            "pandas": get_pkg_version("pandas"),
+        },
+    }
 
     # Assess Collaborative Filtering Feasibility
     cf_report = assess_collaborative_filtering_feasibility(df)
 
     # Save complete benchmark report
     benchmark_report = {
+        "benchmark_metadata": environment_meta,
+        "configuration": config.to_dict(),
         "dataset_summary": {
             "total_talks": len(df),
             "columns": list(df.columns),
@@ -167,10 +209,18 @@ def main():
             },
         },
         "editorial_benchmark_metrics": {
+            "evaluation_sample_count": len(sample_eval_ids),
+            "sample_selection_criteria": "First 100 talks with talk_id <= 500 possessing valid editorial related talk links",
             "tfidf_model": eval_tfidf,
             "semantic_model": eval_semantic,
+            "hybrid_model_with_mmr": eval_hybrid_mmr,
+            "hybrid_model_no_mmr": eval_hybrid_direct,
         },
         "collaborative_filtering_assessment": cf_report.to_dict(),
+        "evaluation_notes": {
+            "proxy_nature": "Editorial related talks reflect editorial curation, serving as an automated content-similarity proxy rather than user conversion labels.",
+            "diversity_metric": "IntraListDiversity@K measures average pairwise cosine distance (1 - cos_sim) within the top-K recommendations in 384-dimensional semantic space.",
+        },
     }
 
     MODULE_4_OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)

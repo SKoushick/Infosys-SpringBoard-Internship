@@ -83,9 +83,9 @@ class RecommendationResult:
 
 
 def maximal_marginal_relevance(
-    query_vector: np.ndarray,
+    query_vector: Union[np.ndarray, sparse.spmatrix],
     candidate_indices: np.ndarray,
-    candidate_features: np.ndarray,
+    candidate_features: Union[np.ndarray, sparse.spmatrix],
     relevance_scores: np.ndarray,
     top_k: int = 10,
     mmr_lambda: float = 0.7,
@@ -96,10 +96,15 @@ def maximal_marginal_relevance(
     Formula:
     argmax [ lambda * Sim(query, d_i) - (1 - lambda) * max_{d_j in Selected} Sim(d_i, d_j) ]
 
+    Operates memory-efficiently:
+    - Never densifies the entire sparse matrix catalog.
+    - Slices candidate features and updates similarities incrementally in O(K * N_cand).
+    - Supports both scipy.sparse matrices (TF-IDF) and dense ndarrays (embeddings).
+
     Args:
-        query_vector: 1D normalized query representation
-        candidate_indices: Row indices of candidate items in candidate_features
-        candidate_features: 2D unit-normalized feature matrix (dense ndarray)
+        query_vector: Unit-normalized query representation (1D ndarray or (1, D) sparse vector)
+        candidate_indices: 1D array of row indices of candidate items in candidate_features
+        candidate_features: 2D unit-normalized feature matrix (dense ndarray or sparse.csr_matrix)
         relevance_scores: 1D array of precomputed similarity scores with query
         top_k: Number of diversified items to return
         mmr_lambda: Balance parameter [0, 1]. 1.0 = purely relevant, 0.0 = purely diverse.
@@ -107,41 +112,61 @@ def maximal_marginal_relevance(
     Returns:
         List of selected candidate row indices in ranked order.
     """
-    if len(candidate_indices) <= top_k:
-        # Return sorted by relevance if candidates fewer than requested K
+    if top_k <= 0 or len(candidate_indices) == 0:
+        return []
+
+    mmr_lambda = float(np.clip(mmr_lambda, 0.0, 1.0))
+    n_candidates = len(candidate_indices)
+
+    if n_candidates <= top_k:
+        # Return sorted by relevance if candidates fewer than or equal to requested K
         sorted_order = np.argsort(-relevance_scores)
         return [candidate_indices[i] for i in sorted_order]
 
-    selected: List[int] = []
-    selected_features: List[np.ndarray] = []
-    candidates = list(range(len(candidate_indices)))
+    # Slice candidate features once (maintains sparse representation if sparse)
+    cand_matrix = candidate_features[candidate_indices]
+    is_sparse = sparse.issparse(cand_matrix)
 
-    # Select the first item with highest relevance score
+    selected_local: List[int] = []
+    remaining: Set[int] = set(range(n_candidates))
+    max_sim_to_selected = np.full(n_candidates, -np.inf, dtype=np.float32)
+
+    # 1. Select the initial item with the highest relevance score
     best_first = int(np.argmax(relevance_scores))
-    selected.append(candidate_indices[best_first])
-    selected_features.append(candidate_features[candidate_indices[best_first]])
-    candidates.remove(best_first)
+    selected_local.append(best_first)
+    remaining.remove(best_first)
 
-    while len(selected) < top_k and candidates:
-        sub_features = candidate_features[candidate_indices[candidates]]  # (N_cand, Dim)
-        rel_scores = relevance_scores[candidates]
+    # Compute similarity between all candidates and the first selected item
+    if is_sparse:
+        first_vec = cand_matrix.getrow(best_first)
+        sims_to_new = cand_matrix.dot(first_vec.T).toarray().ravel()
+    else:
+        sims_to_new = np.dot(cand_matrix, cand_matrix[best_first])
+    max_sim_to_selected = np.maximum(max_sim_to_selected, sims_to_new)
 
-        # Compute maximum similarity between each candidate and already selected items
-        sel_matrix = np.array(selected_features)  # (N_sel, Dim)
-        # Cosine similarity is simple dot product as vectors are unit normalized
-        inter_sims = np.dot(sub_features, sel_matrix.T)  # (N_cand, N_sel)
-        max_inter_sims = np.max(inter_sims, axis=1)
+    # 2. Greedily select remaining items balancing relevance and diversity
+    while len(selected_local) < top_k and remaining:
+        rem_list = list(remaining)
+        rem_rel = relevance_scores[rem_list]
+        rem_div = max_sim_to_selected[rem_list]
 
-        # Compute MMR score for remaining candidates
-        mmr_scores = mmr_lambda * rel_scores - (1.0 - mmr_lambda) * max_inter_sims
-        best_cand_idx = int(np.argmax(mmr_scores))
+        # Compute MMR score
+        mmr_scores = (mmr_lambda * rem_rel) - ((1.0 - mmr_lambda) * rem_div)
+        best_rem_idx = int(np.argmax(mmr_scores))
+        best_cand_local = rem_list[best_rem_idx]
 
-        selected_actual_idx = candidate_indices[candidates[best_cand_idx]]
-        selected.append(selected_actual_idx)
-        selected_features.append(candidate_features[selected_actual_idx])
-        candidates.pop(best_cand_idx)
+        selected_local.append(best_cand_local)
+        remaining.remove(best_cand_local)
 
-    return selected
+        if len(selected_local) < top_k and remaining:
+            if is_sparse:
+                new_vec = cand_matrix.getrow(best_cand_local)
+                sims_to_new = cand_matrix.dot(new_vec.T).toarray().ravel()
+            else:
+                sims_to_new = np.dot(cand_matrix, cand_matrix[best_cand_local])
+            max_sim_to_selected = np.maximum(max_sim_to_selected, sims_to_new)
+
+    return [int(candidate_indices[b]) for b in selected_local]
 
 
 class BaseRecommender:
@@ -264,13 +289,11 @@ class ContentBasedRecommender(BaseRecommender):
         cand_scores_arr = np.array(candidate_scores)
 
         if apply_mmr and len(cand_indices_arr) > k:
-            # Dense slice of candidate vectors for MMR
-            cand_features_dense = self.tfidf_matrix[cand_indices_arr].toarray()
-            seed_vec_dense = seed_vec.toarray().ravel()
+            # Memory-efficient sparse MMR without catalog densification
             ranked_indices = maximal_marginal_relevance(
-                query_vector=seed_vec_dense,
+                query_vector=seed_vec,
                 candidate_indices=cand_indices_arr,
-                candidate_features=self.tfidf_matrix.toarray(),
+                candidate_features=self.tfidf_matrix,
                 relevance_scores=cand_scores_arr,
                 top_k=k,
                 mmr_lambda=self.config.mmr_lambda,
@@ -528,6 +551,32 @@ class HybridRecommender(BaseRecommender):
             self.semantic_rec = None
             logger.warning("Semantic embeddings not available; running in TF-IDF fallback mode.")
 
+    def recommend_for_talk(
+        self,
+        talk_id: int,
+        top_k: Optional[int] = None,
+        filter_tags: Optional[List[str]] = None,
+        exclude_talk_ids: Optional[Set[int]] = None,
+        apply_mmr: bool = True,
+        tfidf_weight: Optional[float] = None,
+        semantic_weight: Optional[float] = None,
+    ) -> List[RecommendationResult]:
+        """
+        Polymorphic wrapper matching BaseRecommender interface for a single seed talk.
+        Allows HybridRecommender to be evaluated and benchmarked identically to Content/Semantic.
+        """
+        if talk_id not in self.id_to_idx:
+            raise KeyError(f"Seed talk_id {talk_id} not found in dataset.")
+        return self.recommend(
+            seed_talk_id=talk_id,
+            top_k=top_k,
+            filter_tags=filter_tags,
+            disliked_talk_ids=list(exclude_talk_ids) if exclude_talk_ids else None,
+            apply_mmr=apply_mmr,
+            tfidf_weight=tfidf_weight,
+            semantic_weight=semantic_weight,
+        )
+
     def recommend(
         self,
         seed_talk_id: Optional[int] = None,
@@ -652,12 +701,26 @@ class HybridRecommender(BaseRecommender):
         cand_scores_arr = np.array(candidate_scores)
 
         # Ranking: MMR diversification or direct top-K
-        if apply_mmr and len(cand_indices_arr) > k and self.has_semantic:
-            # Use semantic embeddings as feature space for MMR diversity
+        if apply_mmr and len(cand_indices_arr) > k:
+            if self.has_semantic and self.pipeline.embedding_matrix is not None:
+                cand_feats = self.pipeline.embedding_matrix
+                query_vec = (
+                    self.pipeline.embedding_matrix[valid_pos_indices[0]]
+                    if (positive_ids and valid_pos_indices)
+                    else self.pipeline.embedding_matrix[0]
+                )
+            else:
+                cand_feats = self.pipeline.combined_tfidf_matrix
+                query_vec = (
+                    self.pipeline.combined_tfidf_matrix[valid_pos_indices[0]]
+                    if (positive_ids and valid_pos_indices)
+                    else self.pipeline.combined_tfidf_matrix[0]
+                )
+
             ranked_indices = maximal_marginal_relevance(
-                query_vector=self.pipeline.embedding_matrix[valid_pos_indices[0]] if positive_ids else self.pipeline.embedding_matrix[0],
+                query_vector=query_vec,
                 candidate_indices=cand_indices_arr,
-                candidate_features=self.pipeline.embedding_matrix,
+                candidate_features=cand_feats,
                 relevance_scores=cand_scores_arr,
                 top_k=k,
                 mmr_lambda=self.config.mmr_lambda,

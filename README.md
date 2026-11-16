@@ -48,14 +48,24 @@ python Module_4_Recommendation_Engine/train_and_benchmark.py
 
 ### 3. Run Automated Tests
 ```bash
-pytest tests/ -v
+pytest -v
 ```
-*(All 16 unit and integration test suites pass in ~54s)*
+*(All 39 unit and integration test suites pass in ~69s)*
 
-### 4. Interactive Notebook Demonstration
-Launch Jupyter and open the Module 4 demonstration notebook:
+### 4. Execute Module 5 Unified Evaluation & Benchmarking Pipeline
+To run the complete evaluation, performance profiling, robustness checks, and generate all high-res plots:
 ```bash
+python Module_5_Evaluation_Metrics/run_evaluation_pipeline.py
+```
+
+### 5. Interactive Notebook Demonstration
+Launch Jupyter and open the demonstration notebooks:
+```bash
+# Module 4 Engine Demonstration
 jupyter notebook Module_4_Recommendation_Engine/01_Recommendation_Engine_Demonstration.ipynb
+
+# Module 5 Evaluation Analysis
+jupyter notebook Module_5_Evaluation_Metrics/notebooks/05_Final_Evaluation_Analysis.ipynb
 ```
 
 ---
@@ -71,7 +81,8 @@ Ted_Talk_Recommendation/
 ├── config/
 │   └── recommender_config.json                # Centralized hyperparameters & weights
 ├── docs/
-│   └── MILESTONE_2_TECHNICAL_DOCUMENTATION.md # 33-section comprehensive technical report
+│   ├── MILESTONE_2_TECHNICAL_DOCUMENTATION.md # 33-section comprehensive technical report
+│   └── MODULE_5_EVALUATION_REPORT.md          # 19-section Module 5 evaluation report
 ├── src/
 │   └── ted_recommender/                       # Production Python Package
 │       ├── __init__.py
@@ -81,8 +92,8 @@ Ted_Talk_Recommendation/
 │       ├── recommender.py                     # Content-based, Semantic, Hybrid, MMR, & Explanations
 │       ├── collaborative.py                   # Feasibility audit & future interface contract
 │       └── evaluation.py                      # Ranking metrics (P@K, R@K, NDCG@K, MAP@K, ILD)
-├── tests/                                     # Automated Test Suite (16/16 Passed)
-│   ├── test_data.py                           # Schema, row alignment, and text cleaning tests
+├── tests/                                     # Core Automated Test Suite (20/20 Passed)
+│   ├── test_data.py                           # Schema, row alignment, fingerprint, and cleaning tests
 │   ├── test_vectorization.py                  # Matrix shapes, sparsity, and transformation tests
 │   ├── test_recommender.py                    # Top-k, self-exclusion, MMR, and edge case tests
 │   └── test_evaluation.py                     # Metric mathematical correctness & audit checks
@@ -90,27 +101,49 @@ Ted_Talk_Recommendation/
 │   └── Scraped/Data/                          # Raw, Processed, and External CSVs (2550 talks)
 ├── Module_2_Data_Exploration_Preprocessing/   # Module 2 EDA Notebooks & Visualizations
 ├── Module_3_Feature_Engineering_Vectorization/# Module 3 Vectorization Notebooks & Feature Matrices
-└── Module_4_Recommendation_Engine/            # Module 4 Implementation & Benchmark
-    ├── 01_Recommendation_Engine_Demonstration.ipynb
-    ├── train_and_benchmark.py
-    └── outputs/milestone_2_benchmark_report.json
+├── Module_4_Recommendation_Engine/            # Module 4 Implementation & Benchmark
+│   ├── 01_Recommendation_Engine_Demonstration.ipynb
+│   ├── train_and_benchmark.py
+│   └── outputs/milestone_2_benchmark_report.json
+└── Module_5_Evaluation_Metrics/               # Module 5 Complete Evaluation Framework
+    ├── configs/evaluation_config.json         # Evaluation parameters, K-cutoffs, and paths
+    ├── data/processed/                        # 2,544 sanitized evaluation ground-truth queries
+    ├── notebooks/                             # 5 standard v4 Jupyter evaluation notebooks
+    ├── results/
+    │   ├── benchmarks/                        # Multi-model comparison scorecards & query logs
+    │   ├── performance/                       # Offline load vs online latency profiles
+    │   ├── plots/                             # 7 publication-quality evaluation comparison plots
+    │   └── reports/                           # Data quality, robustness, & human evaluation reports
+    ├── src/evaluation/                        # Modular evaluation package
+    │   ├── ranking_metrics.py                 # Precision, Recall, F1, NDCG, MAP, HitRate, MRR
+    │   ├── diversity_metrics.py               # ILD, Topic Entropy, Gini-Simpson, Integrity
+    │   ├── coverage_metrics.py                # Catalogue coverage, Novelty bits, Gini index
+    │   ├── evaluation_dataset.py              # Parsing, membership validation, & sampling
+    │   ├── benchmark.py                       # Unified fair benchmarking engine
+    │   ├── performance.py                     # Cold-start vs latency profiling
+    │   ├── robustness.py                      # 12-check boundary stress suite (12/12 PASS)
+    │   └── human_evaluation.py               # Graded relevance framework & template
+    └── tests/                                 # Module 5 Test Suite (19/19 Passed)
 ```
 
 ---
 
-##  Measured Benchmark Performance
+## Measured Benchmark Performance (Module 5 Unified Scorecard)
 
-| Recommender Model | Average Latency | Feature Dimension | Primary Strength |
-|:---|:---:|:---:|:---|
-| **TF-IDF Content-Based** | **30.07 ms** | 44,613 sparse | Exact keyword, speaker, and terminology matching |
-| **Semantic Transformer** | **15.66 ms** | 384 dense | Conceptual alignment, synonymy, latent topical discovery |
-| **Hybrid (TF-IDF + Semantic + MMR)** | **67.40 ms** | Multi-signal | Optimal balance of precision, semantic recall, and diversity |
+Evaluated under strict identical conditions across 100 stratified ground-truth queries ($K=10$):
 
-*Measurements taken across 2,550 talks running locally on CPU.*
+| Recommender Model | NDCG@10 | MAP@10 | Recall@10 | HitRate@10 | ILD@10 (Diversity) | Catalog Coverage | Novelty (bits) | Mean Latency |
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **TF-IDF Content-Based** | 0.0063 | 0.0026 | 0.0077 | 0.0400 | 0.6851 | 51.88% (1,323 talks) | 11.8556 | 26.59 ms |
+| **Sentence-BERT Semantic** | 0.0053 | 0.0018 | 0.0073 | 0.0400 | 0.5597 | 48.98% (1,249 talks) | 11.8498 | 19.49 ms |
+| **Hybrid Multi-Signal (No MMR)** | **0.0076** | **0.0035** | 0.0073 | 0.0400 | 0.5763 | 50.59% (1,290 talks) | 11.8411 | 40.05 ms |
+| **Hybrid + MMR ($\lambda=0.7$)** | 0.0074 | 0.0033 | 0.0073 | 0.0400 | **0.6953 (+20.6%)** | **54.16% (1,381 talks)** | 11.8487 | 54.38 ms |
+
+*Measurements taken across the full 2,550-talk catalogue running locally on Intel CPU.*
 
 ---
 
-##  Collaborative Filtering Decision
+## Collaborative Filtering Decision
 An empirical audit of the dataset confirmed that the TED archive supplies only aggregate talk statistics (`views`, `comments`, `ratings` emotion counts) and **contains zero individual user identifiers or user-item interaction logs**.
 
 In adherence to scientific integrity:
@@ -120,26 +153,27 @@ In adherence to scientific integrity:
 
 ---
 
-##  Seven-Module Status Summary
+## Seven-Module Status Summary
 
 | Module | Status | Verification Evidence |
 |:---|:---:|:---|
 | **Module 1: Data Collection** | **COMPLETE (PASS)** | 2,550 records loaded from verified TED public archive |
 | **Module 2: Data Exploration & Preprocessing** | **COMPLETE (PASS)** | Cleaned text, transcription cue removal, missing transcript fallback |
 | **Module 3: Feature Engineering & Vectorization** | **COMPLETE (PASS)** | 4 TF-IDF vectorizers fitted; 2550×44,613 matrix; 2550×384 embeddings |
-| **Module 4: Develop Recommendation Engine** | **COMPLETE (PASS)** | TF-IDF, Semantic, Hybrid, MMR, Explanations, Personalisation; 16 tests passing |
-| **Module 5: Evaluation Metrics** | **EVALUATION-READY** | Metric formulas implemented; baseline benchmark run; Milestone 3 scope |
-| **Module 6: Streamlit Deployment** | **PLANNED** | Scheduled for Milestone 3 |
-| **Module 7: Presentation & Documentation** | **COMPLETE (PASS)** | Comprehensive technical documentation in `docs/` |
+| **Module 4: Develop Recommendation Engine** | **COMPLETE (PASS)** | TF-IDF, Semantic, Hybrid, MMR, Explanations, Personalisation; 20 tests passing |
+| **Module 5: Evaluation Metrics** | **COMPLETE (PASS)** | 8 ranking metrics, 4 diversity/coverage metrics, ground truth (2,544 queries), 4-model unified benchmark, performance profiling, 12/12 stress checks, human eval framework, 5 notebooks, 7 plots; 19 tests passing (39/39 total suite) |
+| **Module 6: Streamlit Deployment** | **PLANNED** | Scheduled for next milestone |
+| **Module 7: Presentation & Documentation** | **COMPLETE (PASS)** | Comprehensive technical reports in `docs/` (`MILESTONE_2_TECHNICAL_DOCUMENTATION.md` & `MODULE_5_EVALUATION_REPORT.md`) |
 
 ---
 
-##  Documentation
-For detailed architectural designs, mathematical formulations, data dictionaries, and ablation discussions, refer to:
- **[`docs/MILESTONE_2_TECHNICAL_DOCUMENTATION.md`](docs/MILESTONE_2_TECHNICAL_DOCUMENTATION.md)**
+## Documentation
+For detailed architectural designs, mathematical formulations, data dictionaries, and benchmark reports, refer to:
+- **[`docs/MODULE_5_EVALUATION_REPORT.md`](docs/MODULE_5_EVALUATION_REPORT.md)** — Comprehensive Module 5 Evaluation Report (Ranking, Diversity, Coverage, Latency, Robustness, Human Eval)
+- **[`docs/MILESTONE_2_TECHNICAL_DOCUMENTATION.md`](docs/MILESTONE_2_TECHNICAL_DOCUMENTATION.md)** — Architectural Design and Milestone 2 Engineering Documentation
 
 ---
 **Author:** S Koushick  
 **Internship:** Infosys Springboard Internship 7.0  
-**Deliverable:** Milestone 2 Completion
+**Deliverable:** Milestone 2 & Milestone 3 (Module 5) Completion
 

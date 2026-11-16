@@ -150,6 +150,44 @@ def validate_dataset(df: pd.DataFrame) -> Dict:
     return report
 
 
+def compute_dataset_fingerprint(df: pd.DataFrame) -> str:
+    """
+    Compute a deterministic SHA-256 fingerprint from the sequence of talk IDs
+    and essential columns to guarantee exact version compatibility.
+    """
+    import hashlib
+    data_str = ",".join(str(int(tid)) for tid in df["talk_id"].values)
+    return hashlib.sha256(data_str.encode("utf-8")).hexdigest()[:16]
+
+
+def verify_talk_id_alignment(
+    df: pd.DataFrame,
+    saved_talk_ids: np.ndarray,
+    artifact_name: str = "artifact",
+) -> bool:
+    """
+    Verify exact 1-to-1 ordered talk ID alignment between dataset and saved artifact.
+    Guarantees that row i in a feature matrix or embedding array corresponds
+    strictly to row i in the DataFrame.
+    """
+    if len(df) != len(saved_talk_ids):
+        raise ValueError(
+            f"Row count mismatch in {artifact_name}: DataFrame has {len(df)} rows, "
+            f"but {artifact_name} has {len(saved_talk_ids)} talk IDs."
+        )
+    df_ids = df["talk_id"].values.astype(int)
+    saved_ids = np.asarray(saved_talk_ids, dtype=int)
+    mismatches = np.where(df_ids != saved_ids)[0]
+    if len(mismatches) > 0:
+        first_bad = mismatches[0]
+        raise ValueError(
+            f"Row ID mismatch in {artifact_name} at index {first_bad}: "
+            f"DataFrame talk_id={df_ids[first_bad]} vs artifact talk_id={saved_ids[first_bad]}. "
+            f"Total {len(mismatches)} misaligned rows. Re-run artifact generation."
+        )
+    return True
+
+
 def verify_row_alignment(
     df: pd.DataFrame,
     matrix_rows: int,

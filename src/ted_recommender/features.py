@@ -30,7 +30,12 @@ from .config import (
     FieldWeights,
     TfidfConfig,
 )
-from .data import get_content_for_vectorisation, verify_row_alignment
+from .data import (
+    compute_dataset_fingerprint,
+    get_content_for_vectorisation,
+    verify_row_alignment,
+    verify_talk_id_alignment,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -223,8 +228,9 @@ class FeaturePipeline:
         self,
         models_dir: Optional[Path] = None,
         features_dir: Optional[Path] = None,
+        df: Optional[pd.DataFrame] = None,
     ) -> Dict[str, str]:
-        """Save fitted vectorizers, combined matrix, and artifact manifest."""
+        """Save fitted vectorizers, combined matrix, talk IDs, and artifact manifest."""
         m_dir = models_dir or TFIDF_MODELS_DIR
         f_dir = features_dir or TFIDF_FEATURES_DIR
         m_dir.mkdir(parents=True, exist_ok=True)
@@ -246,10 +252,13 @@ class FeaturePipeline:
             np.save(p, self.talk_ids)
             saved["talk_ids_manifest"] = str(p)
 
+        dataset_fingerprint = compute_dataset_fingerprint(df) if df is not None else None
+
         manifest = {
             "n_records": int(self.combined_tfidf_matrix.shape[0]) if self.combined_tfidf_matrix is not None else 0,
             "feature_dim": int(self.combined_tfidf_matrix.shape[1]) if self.combined_tfidf_matrix is not None else 0,
             "fields": list(self.vectorizers.keys()),
+            "dataset_fingerprint": dataset_fingerprint,
             "saved_paths": saved,
         }
         with open(f_dir / "vectorization_manifest.json", "w", encoding="utf-8") as f:
@@ -261,8 +270,12 @@ class FeaturePipeline:
         self,
         models_dir: Optional[Path] = None,
         features_dir: Optional[Path] = None,
+        df: Optional[pd.DataFrame] = None,
     ) -> bool:
-        """Load saved vectorizers and combined matrix from disk."""
+        """
+        Load saved vectorizers, combined matrix, and embedding matrix from disk.
+        Optionally verifies 1-to-1 talk ID alignment if DataFrame is provided.
+        """
         m_dir = models_dir or TFIDF_MODELS_DIR
         f_dir = features_dir or TFIDF_FEATURES_DIR
 
@@ -281,10 +294,14 @@ class FeaturePipeline:
         manifest_ids = f_dir / "talk_ids_manifest.npy"
         if manifest_ids.exists():
             self.talk_ids = np.load(manifest_ids)
+            if df is not None:
+                verify_talk_id_alignment(df, self.talk_ids, "saved talk_ids_manifest")
 
         emb_p = EMBEDDING_CACHE_DIR / "ted_semantic_embeddings.npy"
         if emb_p.exists():
             self.embedding_matrix = np.load(emb_p)
+            if df is not None:
+                verify_row_alignment(df, self.embedding_matrix.shape[0], "ted_semantic_embeddings")
 
         return True
 

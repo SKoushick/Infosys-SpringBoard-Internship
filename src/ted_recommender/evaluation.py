@@ -24,6 +24,25 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
+def f1_at_k(recommended_ids: List[int], relevant_ids: Set[int], k: int) -> float:
+    """F1@K: Harmonic mean of Precision@K and Recall@K."""
+    p = precision_at_k(recommended_ids, relevant_ids, k)
+    r = recall_at_k(recommended_ids, relevant_ids, k)
+    if (p + r) == 0.0:
+        return 0.0
+    return float(2.0 * p * r / (p + r))
+
+
+def reciprocal_rank_at_k(recommended_ids: List[int], relevant_ids: Set[int], k: int) -> float:
+    """Reciprocal Rank at K."""
+    if k <= 0 or not recommended_ids or not relevant_ids:
+        return 0.0
+    for rank, item in enumerate(recommended_ids[:k], start=1):
+        if item in relevant_ids:
+            return float(1.0 / rank)
+    return 0.0
+
+
 def precision_at_k(recommended_ids: List[int], relevant_ids: Set[int], k: int) -> float:
     """Precision@K: Fraction of top-K recommendations that are relevant."""
     if k <= 0 or not recommended_ids:
@@ -162,16 +181,19 @@ class RecommendationEvaluator:
         recommender,
         test_talk_ids: List[int],
         k: int = 10,
+        feature_matrix: Optional[np.ndarray] = None,
+        id_to_idx: Optional[Dict[int, int]] = None,
     ) -> Dict[str, float]:
         """
         Evaluate a recommender model across a set of test talk IDs.
-        Returns average Precision@K, Recall@K, NDCG@K, MAP@K, and HitRate@K.
+        Returns average Precision@K, Recall@K, NDCG@K, MAP@K, HitRate@K, and IntraListDiversity@K.
         """
         precisions = []
         recalls = []
         ndcgs = []
         maps = []
         hit_rates = []
+        ilds = []
 
         for talk_id in test_talk_ids:
             if talk_id not in self.ground_truth:
@@ -190,12 +212,17 @@ class RecommendationEvaluator:
                 ndcgs.append(ndcg_at_k(rec_ids, relevant, k))
                 maps.append(average_precision_at_k(rec_ids, relevant, k))
                 hit_rates.append(hit_rate_at_k(rec_ids, relevant, k))
+
+                if feature_matrix is not None and id_to_idx is not None:
+                    rec_indices = [id_to_idx[r_id] for r_id in rec_ids if r_id in id_to_idx]
+                    if len(rec_indices) >= 2:
+                        ilds.append(intra_list_diversity(rec_indices, feature_matrix))
             except Exception as e:
                 logger.warning(f"Failed evaluation for talk_id {talk_id}: {e}")
                 continue
 
         if not precisions:
-            return {
+            out = {
                 f"Precision@{k}": 0.0,
                 f"Recall@{k}": 0.0,
                 f"NDCG@{k}": 0.0,
@@ -203,8 +230,11 @@ class RecommendationEvaluator:
                 f"HitRate@{k}": 0.0,
                 "n_evaluated_talks": 0,
             }
+            if feature_matrix is not None:
+                out[f"IntraListDiversity@{k}"] = 0.0
+            return out
 
-        return {
+        out = {
             f"Precision@{k}": round(float(np.mean(precisions)), 4),
             f"Recall@{k}": round(float(np.mean(recalls)), 4),
             f"NDCG@{k}": round(float(np.mean(ndcgs)), 4),
@@ -212,4 +242,7 @@ class RecommendationEvaluator:
             f"HitRate@{k}": round(float(np.mean(hit_rates)), 4),
             "n_evaluated_talks": len(precisions),
         }
+        if ilds:
+            out[f"IntraListDiversity@{k}"] = round(float(np.mean(ilds)), 4)
+        return out
 

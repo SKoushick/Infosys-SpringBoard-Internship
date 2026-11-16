@@ -1,0 +1,16 @@
+{
+  "total_catalogue_talks": 2550,
+  "talks_with_related_field": 2550,
+  "talks_with_valid_ground_truth": 2544,
+  "talks_without_valid_ground_truth": 6,
+  "talks_missing_transcript_in_eval_set": 85,
+  "total_raw_links_parsed": 15010,
+  "total_valid_links_retained": 13246,
+  "out_of_catalogue_links_dropped": 1754,
+  "self_references_dropped": 10,
+  "min_relevant_per_query": 1,
+  "max_relevant_per_query": 6,
+  "mean_relevant_per_query": 5.207,
+  "median_relevant_per_query": 6.0,
+  "feature_leakage_assessment": "PASSED: The 'related_talks' column is NOT used as an input feature in TF-IDF or Sentence-BERT models."
+}

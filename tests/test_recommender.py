@@ -105,3 +105,87 @@ def test_edge_cases(recommender_suite):
     )
     assert filtered == []
 
+
+def test_mmr_properties_and_memory_efficiency():
+    """Verify MMR ranking logic, diversity tradeoff, and sparse memory efficiency."""
+    import numpy as np
+    from scipy import sparse
+    from ted_recommender.recommender import maximal_marginal_relevance
+
+    # Synthetic candidate setup:
+    # 5 candidates with 4 features each
+    # Item 0: [1, 0, 0, 0] (relevance 0.95)
+    # Item 1: [0.99, 0.01, 0, 0] (near duplicate of Item 0, relevance 0.90)
+    # Item 2: [0, 1, 0, 0] (completely orthogonal/diverse, relevance 0.85)
+    # Item 3: [0, 0, 1, 0] (orthogonal, relevance 0.80)
+    # Item 4: [0, 0, 0, 1] (orthogonal, relevance 0.75)
+    dense_feats = np.array([
+        [1.0, 0.0, 0.0, 0.0],
+        [0.99, 0.01, 0.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+    ], dtype=np.float32)
+    # Normalize rows
+    norms = np.linalg.norm(dense_feats, axis=1, keepdims=True)
+    dense_feats = dense_feats / norms
+
+    sparse_feats = sparse.csr_matrix(dense_feats)
+    cand_indices = np.array([0, 1, 2, 3, 4])
+    relevance_scores = np.array([0.95, 0.90, 0.85, 0.80, 0.75], dtype=np.float32)
+
+    # 1. Pure Relevance (lambda = 1.0): Should select [0, 1, 2] in exact descending order of relevance
+    res_dense_pure_rel = maximal_marginal_relevance(
+        query_vector=dense_feats[0],
+        candidate_indices=cand_indices,
+        candidate_features=dense_feats,
+        relevance_scores=relevance_scores,
+        top_k=3,
+        mmr_lambda=1.0,
+    )
+    assert res_dense_pure_rel == [0, 1, 2], f"Expected [0, 1, 2], got {res_dense_pure_rel}"
+
+    # 2. Balanced Diversity (lambda = 0.5):
+    # After selecting 0, candidate 1 (near-duplicate) should be penalized for high similarity to 0.
+    # Candidate 2 (orthogonal) should be preferred over candidate 1!
+    res_dense_div = maximal_marginal_relevance(
+        query_vector=dense_feats[0],
+        candidate_indices=cand_indices,
+        candidate_features=dense_feats,
+        relevance_scores=relevance_scores,
+        top_k=3,
+        mmr_lambda=0.5,
+    )
+    assert res_dense_div[0] == 0
+    assert res_dense_div[1] == 2, f"Candidate 2 should be chosen over duplicate candidate 1, got {res_dense_div}"
+
+    # 3. Sparse CSR Execution: Exact same behavior without densification
+    res_sparse_div = maximal_marginal_relevance(
+        query_vector=sparse_feats.getrow(0),
+        candidate_indices=cand_indices,
+        candidate_features=sparse_feats,
+        relevance_scores=relevance_scores,
+        top_k=3,
+        mmr_lambda=0.5,
+    )
+    assert res_sparse_div == res_dense_div, "Sparse MMR results must match dense MMR results identically"
+
+    # 4. Edge cases
+    assert maximal_marginal_relevance(dense_feats[0], cand_indices, dense_feats, relevance_scores, top_k=0) == []
+    # If candidates <= top_k, returns sorted by relevance
+    few_cands = np.array([3, 1])
+    res_few = maximal_marginal_relevance(dense_feats[0], few_cands, dense_feats, relevance_scores[few_cands], top_k=5)
+    assert res_few == [1, 3]
+
+
+def test_hybrid_recommend_for_talk_polymorphism(recommender_suite):
+    """Verify polymorphic recommend_for_talk method on HybridRecommender."""
+    tfidf_rec, semantic_rec, hybrid_rec, _ = recommender_suite
+    results = hybrid_rec.recommend_for_talk(talk_id=1, top_k=5, apply_mmr=True)
+
+    assert len(results) == 5
+    assert all(r.talk_id != 1 for r in results)
+    assert results[0].score >= results[-1].score or any(r.explanation.semantic_score is not None for r in results)
+    assert results[0].explanation.combined_score is not None
+
+

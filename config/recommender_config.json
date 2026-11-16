@@ -1,0 +1,29 @@
+{
+  "top_k": 10,
+  "mmr_lambda": 0.7,
+  "tfidf_weight": 0.5,
+  "semantic_weight": 0.5,
+  "embedding_model_name": "sentence-transformers/all-MiniLM-L6-v2",
+  "embedding_max_seq_length": 256,
+  "field_weights": {
+    "title": 0.2,
+    "description": 0.25,
+    "tags": 0.3,
+    "transcript": 0.25
+  },
+  "tfidf_config": {
+    "max_features": 30000,
+    "ngram_range": [
+      1,
+      2
+    ],
+    "min_df": 2,
+    "max_df": 0.9,
+    "sublinear_tf": true,
+    "stop_words": "english",
+    "title_max_features": 5000,
+    "description_max_features": 10000,
+    "tags_max_features": 5000,
+    "transcript_max_features": 30000
+  }
+}

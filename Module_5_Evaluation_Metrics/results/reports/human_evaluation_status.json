@@ -1,0 +1,13 @@
+{
+  "status": "PENDING_HUMAN_EVALUATION",
+  "total_pairs_prepared": 114,
+  "labeled_pairs": 0,
+  "completion_percentage": 0.0,
+  "message": "Template exists but no human grades have been assigned yet.",
+  "scale": {
+    "0": "Not Relevant: Completely different domain, unhelpful recommendation.",
+    "1": "Slightly Relevant: Tangential keyword or speaker overlap, but poor thematic fit.",
+    "2": "Relevant: Clear shared subject matter, conceptually sound recommendation.",
+    "3": "Highly Relevant: Exemplary companion talk, direct sequel, or deep thematic continuity."
+  }
+}

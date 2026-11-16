@@ -1,0 +1,5 @@
+Model,NDCG@10,MAP@10,Precision@10,Recall@10,HitRate@10,ILD@10 (Diversity),Coverage (%),Novelty (Bits),Latency (ms)
+TF-IDF Content-Based,0.0063,0.0026,0.004,0.0077,0.04,0.6851,51.88,11.8556,26.59
+Sentence-BERT Semantic,0.0053,0.0018,0.004,0.0073,0.04,0.5597,48.98,11.8498,19.49
+Hybrid Multi-Signal,0.0076,0.0035,0.004,0.0073,0.04,0.5763,50.59,11.8411,40.05
+Hybrid Multi-Signal + MMR,0.0074,0.0033,0.004,0.0073,0.04,0.6953,54.16,11.8487,54.38
