@@ -1,9 +1,9 @@
 {
   "project_name": "Personalized TED Talks Recommendation System - Module 5 Evaluation Metrics",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "random_seed": 42,
   "data_paths": {
-    "features_dataset": "Module_1_Data_Collection/Scraped/Data/Processed/ted_talks_features.csv",
+    "features_dataset": "Module_3_Feature_Engineering_Vectorization/features/ted_talks_features.csv",
     "preprocessed_dataset": "Module_1_Data_Collection/Scraped/Data/Processed/ted_talks_preprocessed.csv",
     "clean_dataset": "Module_1_Data_Collection/Scraped/Data/Processed/ted_talks_clean.csv",
     "raw_dataset": "Module_1_Data_Collection/Scraped/Data/Raw/ted_talks.csv",
@@ -21,8 +21,9 @@
     "k_values": [5, 10, 20],
     "default_k": 10,
     "exclude_self": true,
+    "strict_mode": true,
     "relevance_proxy_column": "related_talks",
-    "binary_relevance_threshold": 1,
+    "binary_relevance_threshold": 2,
     "graded_relevance_scale": {
       "0": "Not relevant",
       "1": "Slightly relevant",
@@ -64,4 +65,3 @@
   "results_dir": "Module_5_Evaluation_Metrics/results",
   "disclaimer": "TED editorial related talks serve as an automated proxy relevance benchmark. Without real per-user interaction logs, proxy metrics provide defensible relative model comparisons rather than live user satisfaction claims."
 }
-

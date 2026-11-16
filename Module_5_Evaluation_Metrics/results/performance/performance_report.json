@@ -1,79 +1,91 @@
 {
   "offline_artifact_loading": {
     "load_successful": true,
-    "offline_loading_seconds": 0.671,
-    "memory_before_load_mb": 430.93,
-    "memory_after_load_mb": 454.72,
-    "memory_increase_mb": 23.79
+    "offline_loading_seconds": 0.889,
+    "memory_before_load_mb": 430.6,
+    "memory_after_load_mb": 454.34,
+    "memory_increase_mb": 23.74
   },
   "online_query_latency_profiles": {
     "tfidf": {
       "model_name": "TF-IDF Content-Based",
+      "warmup_queries_executed": 3,
+      "timed_iterations": 10,
       "total_queries_profiled": 100,
+      "failed_queries_count": 0,
       "top_k": 10,
       "apply_mmr": false,
       "latency_ms": {
-        "mean": 21.96,
-        "std": 8.44,
-        "median": 19.22,
-        "min": 10.4,
-        "max": 56.88,
-        "p90": 32.46,
-        "p95": 38.96,
-        "p99": 45.18
+        "mean": 22.95,
+        "std": 5.85,
+        "median": 22.48,
+        "min": 12.82,
+        "max": 43.02,
+        "p90": 31.24,
+        "p95": 35.16,
+        "p99": 37.68
       },
-      "throughput_queries_per_sec": 45.5
+      "throughput_queries_per_sec": 43.6
     },
     "semantic": {
       "model_name": "Sentence-BERT Semantic",
+      "warmup_queries_executed": 3,
+      "timed_iterations": 10,
       "total_queries_profiled": 100,
+      "failed_queries_count": 0,
       "top_k": 10,
       "apply_mmr": false,
       "latency_ms": {
-        "mean": 14.45,
-        "std": 5.28,
-        "median": 14.03,
-        "min": 7.61,
-        "max": 49.24,
-        "p90": 18.82,
-        "p95": 20.53,
-        "p99": 37.45
+        "mean": 20.17,
+        "std": 5.76,
+        "median": 19.3,
+        "min": 10.34,
+        "max": 39.4,
+        "p90": 27.73,
+        "p95": 30.9,
+        "p99": 37.01
       },
-      "throughput_queries_per_sec": 69.2
+      "throughput_queries_per_sec": 49.6
     },
     "hybrid": {
-      "model_name": "Hybrid Multi-Signal",
+      "model_name": "Hybrid Multi-Signal (No MMR)",
+      "warmup_queries_executed": 3,
+      "timed_iterations": 10,
       "total_queries_profiled": 100,
+      "failed_queries_count": 0,
       "top_k": 10,
       "apply_mmr": false,
       "latency_ms": {
-        "mean": 22.48,
-        "std": 6.37,
-        "median": 21.66,
-        "min": 11.74,
-        "max": 45.52,
-        "p90": 30.03,
-        "p95": 37.48,
-        "p99": 40.43
+        "mean": 37.44,
+        "std": 11.39,
+        "median": 36.38,
+        "min": 17.64,
+        "max": 84.74,
+        "p90": 49.42,
+        "p95": 56.5,
+        "p99": 79.31
       },
-      "throughput_queries_per_sec": 44.5
+      "throughput_queries_per_sec": 26.7
     },
     "hybrid_mmr": {
       "model_name": "Hybrid Multi-Signal + MMR",
+      "warmup_queries_executed": 3,
+      "timed_iterations": 10,
       "total_queries_profiled": 100,
+      "failed_queries_count": 0,
       "top_k": 10,
       "apply_mmr": true,
       "latency_ms": {
-        "mean": 34.98,
-        "std": 8.58,
-        "median": 33.98,
-        "min": 23.14,
-        "max": 62.11,
-        "p90": 48.15,
-        "p95": 49.89,
-        "p99": 60.16
+        "mean": 53.48,
+        "std": 16.02,
+        "median": 52.21,
+        "min": 28.56,
+        "max": 119.99,
+        "p90": 69.22,
+        "p95": 82.81,
+        "p99": 116.56
       },
-      "throughput_queries_per_sec": 28.6
+      "throughput_queries_per_sec": 18.7
     }
   }
 }

@@ -15,6 +15,8 @@ Implements mathematically rigorous, edge-case resilient ranking metrics:
 Guarantees:
 - Safe division (returns 0.0 when denominators are zero).
 - Exact handling of empty recommendations or empty relevant sets.
+- Strict duplicate handling: duplicate recommendations occupy rank positions but
+  cannot generate redundant relevance hits (prevents gaming the metric).
 - Bounds verification (0.0 <= metric <= 1.0 for normalized metrics).
 """
 
@@ -30,11 +32,17 @@ def precision_at_k(
     """
     Precision@K: Proportion of top-K recommendations that are relevant.
     Formula: |Recommended[:k] ∩ Relevant| / k
+    Duplicate recommendations are counted at most once as a relevant hit.
     """
     if k <= 0 or not recommended_ids or not relevant_ids:
         return 0.0
     top_k = recommended_ids[:k]
-    hits = sum(1 for item in top_k if item in relevant_ids)
+    seen_hits: Set[int] = set()
+    hits = 0
+    for item in top_k:
+        if item in relevant_ids and item not in seen_hits:
+            seen_hits.add(item)
+            hits += 1
     return float(hits / k)
 
 
@@ -46,11 +54,17 @@ def recall_at_k(
     """
     Recall@K: Proportion of known relevant items retrieved in top-K.
     Formula: |Recommended[:k] ∩ Relevant| / |Relevant|
+    Duplicate recommendations cannot yield redundant hits.
     """
     if k <= 0 or not recommended_ids or not relevant_ids:
         return 0.0
     top_k = recommended_ids[:k]
-    hits = sum(1 for item in top_k if item in relevant_ids)
+    seen_hits: Set[int] = set()
+    hits = 0
+    for item in top_k:
+        if item in relevant_ids and item not in seen_hits:
+            seen_hits.add(item)
+            hits += 1
     return float(hits / len(relevant_ids))
 
 
@@ -79,13 +93,21 @@ def dcg_at_k(
     """
     Discounted Cumulative Gain at rank K.
     Formula: sum_{i=1}^k [ (2^{rel_i} - 1) / log2(i + 1) ]
+    Duplicate recommendations yield 0 gain at subsequent ranks.
     """
     if k <= 0 or not recommended_ids or not relevance:
         return 0.0
 
     top_k = recommended_ids[:k]
+    seen_items: Set[int] = set()
     dcg = 0.0
+
     for rank, item in enumerate(top_k, start=1):
+        if item in seen_items:
+            # Duplicate recommendation receives 0 gain at subsequent ranks
+            continue
+        seen_items.add(item)
+
         if isinstance(relevance, dict):
             rel_score = float(relevance.get(item, 0.0))
         else:
@@ -150,15 +172,20 @@ def average_precision_at_k(
     """
     Average Precision at rank K.
     Formula: sum_{i=1}^k [ P(i) * rel(i) ] / min(|Relevant|, k)
+    Duplicate recommendations occupy rank slots but do not count as new hits.
     """
     if k <= 0 or not recommended_ids or not relevant_ids:
         return 0.0
 
     top_k = recommended_ids[:k]
+    seen_items: Set[int] = set()
     hits = 0
     sum_precisions = 0.0
 
     for rank, item in enumerate(top_k, start=1):
+        if item in seen_items:
+            continue
+        seen_items.add(item)
         if item in relevant_ids:
             hits += 1
             sum_precisions += hits / rank
@@ -199,4 +226,3 @@ def reciprocal_rank_at_k(
         if item in relevant_ids:
             return float(1.0 / rank)
     return 0.0
-

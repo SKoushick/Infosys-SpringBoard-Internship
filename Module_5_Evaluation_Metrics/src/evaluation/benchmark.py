@@ -9,13 +9,16 @@ Evaluates all four core recommendation strategies under strictly identical condi
 4. Hybrid Recommender with MMR (Multi-signal fusion + Maximal Marginal Relevance)
 
 Guarantees:
-- Identical evaluation query sample across all models.
-- Identical candidate catalogue and exclusion rules (self-talk excluded).
+- Transparent execution: records requested, evaluated, and failed queries per model.
+- Strict benchmark mode: immediately fails with descriptive error if any query cannot be evaluated.
+- Fair query verification: verifies that all compared models evaluated the exact same query IDs.
+- Eliminates silent exception masking and false non-MMR fallback behavior.
 - Evaluates the actual hybrid and MMR execution paths (no proxy substitutions).
 - Comprehensive evaluation across ranking accuracy, intra-list diversity,
   catalogue coverage, novelty, and inference latency.
 """
 
+import inspect
 import json
 import logging
 import time
@@ -54,7 +57,11 @@ class ModelBenchmarkScorecard:
     """Consolidated metric results for a single model across all queries."""
     model_id: str
     display_name: str
+    requested_query_count: int
     num_queries_evaluated: int
+    failed_query_count: int
+    successful_query_ids: List[int]
+    failed_query_ids: List[int]
     precision_at_5: float
     precision_at_10: float
     precision_at_20: float
@@ -85,7 +92,13 @@ class ModelBenchmarkScorecard:
         return {
             "model_id": self.model_id,
             "display_name": self.display_name,
-            "num_queries_evaluated": self.num_queries_evaluated,
+            "query_execution": {
+                "requested_query_count": self.requested_query_count,
+                "num_queries_evaluated": self.num_queries_evaluated,
+                "failed_query_count": self.failed_query_count,
+                "successful_query_ids": self.successful_query_ids,
+                "failed_query_ids": self.failed_query_ids,
+            },
             "ranking_accuracy": {
                 "Precision@5": self.precision_at_5,
                 "Precision@10": self.precision_at_10,
@@ -131,6 +144,7 @@ class UnifiedRecommenderBenchmark:
         id_to_idx: Dict[int, int],
         idx_to_id: Dict[int, int],
         item_views_map: Optional[Dict[int, int]] = None,
+        strict_mode: bool = False,
     ):
         self.df = df
         self.ground_truth = ground_truth
@@ -138,23 +152,27 @@ class UnifiedRecommenderBenchmark:
         self.id_to_idx = id_to_idx
         self.idx_to_id = idx_to_id
         self.catalogue_size = len(df)
+        self.strict_mode = strict_mode
         self.item_views_map = item_views_map or {
             int(row["talk_id"]): int(row.get("views", 1)) for _, row in df.iterrows()
         }
 
     def evaluate_model(
         self,
-        model,
+        model: Any,
         model_id: str,
         display_name: str,
         query_ids: List[int],
         apply_mmr: bool = False,
+        strict: Optional[bool] = None,
     ) -> Tuple[ModelBenchmarkScorecard, pd.DataFrame]:
         """
         Evaluate a single model across query_ids for K in [5, 10, 20].
-        Returns aggregate scorecard and per-query detailed DataFrame.
+        Transparently tracks successes and failures.
+        If strict=True, fails immediately on any recommendation exception.
         """
-        logger.info(f"Evaluating {display_name} across {len(query_ids)} queries (apply_mmr={apply_mmr})...")
+        is_strict = self.strict_mode if strict is None else strict
+        logger.info(f"Evaluating {display_name} across {len(query_ids)} queries (apply_mmr={apply_mmr}, strict={is_strict})...")
 
         prec_5, prec_10, prec_20 = [], [], []
         rec_5, rec_10, rec_20 = [], [], []
@@ -169,7 +187,14 @@ class UnifiedRecommenderBenchmark:
         integrity_clean_list = []
         all_recommended_ids: List[int] = []
 
+        successful_query_ids: List[int] = []
+        failed_query_ids: List[int] = []
         per_query_records = []
+
+        # Inspect target dispatch signature once
+        target_fn = model.recommend_for_talk if hasattr(model, "recommend_for_talk") else model.recommend
+        sig = inspect.signature(target_fn)
+        supports_apply_mmr = "apply_mmr" in sig.parameters
 
         for q_id in query_ids:
             if q_id not in self.ground_truth:
@@ -178,23 +203,31 @@ class UnifiedRecommenderBenchmark:
             if not relevant_set:
                 continue
 
+            # Build call arguments transparently without masking exceptions
+            call_kwargs: Dict[str, Any] = {"top_k": 20}
+            if "talk_id" in sig.parameters:
+                call_kwargs["talk_id"] = q_id
+            elif "seed_talk_id" in sig.parameters:
+                call_kwargs["seed_talk_id"] = q_id
+
+            if supports_apply_mmr:
+                call_kwargs["apply_mmr"] = apply_mmr
+
             t0 = time.perf_counter()
             try:
-                # Dispatch recommendation call
-                if hasattr(model, "recommend_for_talk"):
-                    # Pass apply_mmr if model supports it (Hybrid and Content recommenders)
-                    try:
-                        recs = model.recommend_for_talk(talk_id=q_id, top_k=20, apply_mmr=apply_mmr)
-                    except TypeError:
-                        recs = model.recommend_for_talk(talk_id=q_id, top_k=20)
-                else:
-                    recs = model.recommend(seed_talk_id=q_id, top_k=20, apply_mmr=apply_mmr)
+                recs = target_fn(**call_kwargs)
             except Exception as e:
+                failed_query_ids.append(q_id)
                 logger.error(f"Error during recommendation for query {q_id} with model {model_id}: {e}")
+                if is_strict:
+                    raise RuntimeError(
+                        f"Strict benchmark mode failed on model '{model_id}' ({display_name}) for query {q_id}: {e}"
+                    ) from e
                 continue
 
             lat_ms = (time.perf_counter() - t0) * 1000.0
             latencies_ms.append(lat_ms)
+            successful_query_ids.append(q_id)
 
             rec_ids = [r.talk_id for r in recs]
             all_recommended_ids.extend(rec_ids)
@@ -265,7 +298,11 @@ class UnifiedRecommenderBenchmark:
         scorecard = ModelBenchmarkScorecard(
             model_id=model_id,
             display_name=display_name,
+            requested_query_count=len(query_ids),
             num_queries_evaluated=n_eval,
+            failed_query_count=len(failed_query_ids),
+            successful_query_ids=successful_query_ids,
+            failed_query_ids=failed_query_ids,
             precision_at_5=round(float(np.mean(prec_5)), 4) if n_eval else 0.0,
             precision_at_10=round(float(np.mean(prec_10)), 4) if n_eval else 0.0,
             precision_at_20=round(float(np.mean(prec_20)), 4) if n_eval else 0.0,
@@ -296,3 +333,63 @@ class UnifiedRecommenderBenchmark:
         df_per_query = pd.DataFrame(per_query_records)
         return scorecard, df_per_query
 
+    def verify_fair_comparison(
+        self,
+        scorecards: Dict[str, ModelBenchmarkScorecard],
+        strict: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Verify that all evaluated models were tested on the EXACT same set of query IDs.
+        Prevents reporting an invalid comparison if one model failed or skipped queries.
+        """
+        if len(scorecards) <= 1:
+            return {
+                "is_fair": True,
+                "message": "Fair verification passed (single model or empty scorecard).",
+                "common_query_count": (
+                    next(iter(scorecards.values())).num_queries_evaluated if scorecards else 0
+                ),
+            }
+
+        query_sets: Dict[str, Set[int]] = {
+            m_id: set(sc.successful_query_ids) for m_id, sc in scorecards.items()
+        }
+
+        model_names = list(scorecards.keys())
+        first_model = model_names[0]
+        reference_set = query_sets[first_model]
+
+        discrepancies: Dict[str, Dict[str, Any]] = {}
+        for other_model in model_names[1:]:
+            other_set = query_sets[other_model]
+            if other_set != reference_set:
+                missing_in_other = list(reference_set - other_set)
+                extra_in_other = list(other_set - reference_set)
+                discrepancies[f"{first_model}_vs_{other_model}"] = {
+                    "missing_in_other": missing_in_other,
+                    "extra_in_other": extra_in_other,
+                    "count_diff": len(other_set) - len(reference_set),
+                }
+
+        is_fair = len(discrepancies) == 0
+
+        if not is_fair:
+            err_msg = (
+                f"Unfair benchmark comparison detected! Models were evaluated on unequal query sets. "
+                f"Discrepancies found across models: {discrepancies}"
+            )
+            logger.error(err_msg)
+            if strict or self.strict_mode:
+                raise ValueError(err_msg)
+            return {
+                "is_fair": False,
+                "error": err_msg,
+                "discrepancies": discrepancies,
+            }
+
+        return {
+            "is_fair": True,
+            "message": "Fair comparison confirmed: all models evaluated the exact same queries.",
+            "common_query_count": len(reference_set),
+            "models_verified": model_names,
+        }

@@ -100,6 +100,55 @@ def test_average_precision_and_hit_rate():
     assert reciprocal_rank_at_k(rec, rel, k=4) == 0.5
 
 
+def test_duplicate_recommendation_handling():
+    """Verify that duplicate recommendations cannot game ranking metrics."""
+    # Recommendation with duplicate relevant item
+    rec_duplicates = [10, 10, 10]
+    rel = {10}
+
+    # Only 1 unique hit should count towards precision at K=3: P@3 = 1/3
+    assert precision_at_k(rec_duplicates, rel, k=3) == pytest.approx(1 / 3)
+
+    # Recall should be 1/1 = 1.0, not redundant
+    assert recall_at_k(rec_duplicates, rel, k=3) == 1.0
+
+    # DCG should only award gain to the first appearance of item 10
+    # rank 1: gain=1 / log2(2) = 1.0. ranks 2 & 3: gain=0. DCG=1.0
+    assert dcg_at_k(rec_duplicates, rel, k=3) == pytest.approx(1.0)
+    assert ndcg_at_k(rec_duplicates, rel, k=3) == pytest.approx(1.0)
+
+    # AP: Hit at rank 1: P@1 = 1/1 = 1.0. Duplicate ranks 2 & 3 do not add hits. AP = 1.0
+    assert average_precision_at_k(rec_duplicates, rel, k=3) == pytest.approx(1.0)
+
+
+def test_fewer_recommendations_than_k():
+    """Verify safe behavior when recommender returns fewer items than K."""
+    rec_short = [10, 20]
+    rel = {10, 99}
+
+    # K=5: hits=1, Precision@5 = 1/5 = 0.2
+    assert precision_at_k(rec_short, rel, k=5) == 0.2
+    # Recall@5 = 1/2 = 0.5
+    assert recall_at_k(rec_short, rel, k=5) == 0.5
+    # HitRate@5 = 1.0
+    assert hit_rate_at_k(rec_short, rel, k=5) == 1.0
+
+
+def test_zero_relevance():
+    """Verify safe behavior when query has zero hits in recommendations."""
+    rec = [1, 2, 3]
+    rel = {999, 888}
+
+    assert precision_at_k(rec, rel, k=3) == 0.0
+    assert recall_at_k(rec, rel, k=3) == 0.0
+    assert f1_at_k(rec, rel, k=3) == 0.0
+    assert dcg_at_k(rec, rel, k=3) == 0.0
+    assert ndcg_at_k(rec, rel, k=3) == 0.0
+    assert average_precision_at_k(rec, rel, k=3) == 0.0
+    assert hit_rate_at_k(rec, rel, k=3) == 0.0
+    assert reciprocal_rank_at_k(rec, rel, k=3) == 0.0
+
+
 def test_edge_cases_and_zero_handling():
     # Empty inputs
     assert precision_at_k([], {1, 2}, k=5) == 0.0
@@ -115,4 +164,3 @@ def test_edge_cases_and_zero_handling():
     assert precision_at_k([1, 2], {1}, k=0) == 0.0
     assert recall_at_k([1, 2], {1}, k=-1) == 0.0
     assert ndcg_at_k([1, 2], {1}, k=0) == 0.0
-

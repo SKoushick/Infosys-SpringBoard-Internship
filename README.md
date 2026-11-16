@@ -2,7 +2,7 @@
 ### Infosys Springboard Internship 7.0 — Milestone 2 Deliverable
 
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
-[![Testing](https://img.shields.io/badge/pytest-16%20passed-success.svg)](tests/)
+[![Testing](https://img.shields.io/badge/pytest-52%20passed-success.svg)](tests/)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![Framework](https://img.shields.io/badge/scikit--learn-1.4%2B-orange.svg)](https://scikit-learn.org/)
 [![Embeddings](https://img.shields.io/badge/Sentence--Transformers-all--MiniLM--L6--v2-green.svg)](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
@@ -122,24 +122,37 @@ Ted_Talk_Recommendation/
     │   ├── benchmark.py                       # Unified fair benchmarking engine
     │   ├── performance.py                     # Cold-start vs latency profiling
     │   ├── robustness.py                      # 12-check boundary stress suite (12/12 PASS)
-    │   └── human_evaluation.py               # Graded relevance framework & template
-    └── tests/                                 # Module 5 Test Suite (19/19 Passed)
+    │   └── human_evaluation.py               # Graded relevance framework & template (NDCG/MAP)
+    └── tests/                                 # Module 5 Test Suite (32/32 Passed)
 ```
 
 ---
 
 ## Measured Benchmark Performance (Module 5 Unified Scorecard)
 
-Evaluated under strict identical conditions across 100 stratified ground-truth queries ($K=10$):
+Evaluated under strict identical conditions across 100 stratified ground-truth queries ($K=10$) with strict fair verification:
 
-| Recommender Model | NDCG@10 | MAP@10 | Recall@10 | HitRate@10 | ILD@10 (Diversity) | Catalog Coverage | Novelty (bits) | Mean Latency |
-|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **TF-IDF Content-Based** | 0.0063 | 0.0026 | 0.0077 | 0.0400 | 0.6851 | 51.88% (1,323 talks) | 11.8556 | 26.59 ms |
-| **Sentence-BERT Semantic** | 0.0053 | 0.0018 | 0.0073 | 0.0400 | 0.5597 | 48.98% (1,249 talks) | 11.8498 | 19.49 ms |
-| **Hybrid Multi-Signal (No MMR)** | **0.0076** | **0.0035** | 0.0073 | 0.0400 | 0.5763 | 50.59% (1,290 talks) | 11.8411 | 40.05 ms |
-| **Hybrid + MMR ($\lambda=0.7$)** | 0.0074 | 0.0033 | 0.0073 | 0.0400 | **0.6953 (+20.6%)** | **54.16% (1,381 talks)** | 11.8487 | 54.38 ms |
+| Recommender Model | Evaluated Queries | NDCG@10 | MAP@10 | Precision@10 | Recall@10 | HitRate@10 | ILD@10 (Diversity) | Catalog Coverage | Novelty (bits) | Mean Latency |
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **TF-IDF Content-Based** | 100/100 | 0.0063 | 0.0026 | 0.0040 | **0.0077** | **0.0400** | 0.6851 | 51.88% (1,323 talks) | **11.8556** | **32.25 ms** |
+| **Sentence-BERT Semantic** | 100/100 | 0.0053 | 0.0018 | 0.0040 | 0.0073 | **0.0400** | 0.5597 | 48.98% (1,249 talks) | 11.8498 | 35.13 ms |
+| **Hybrid Multi-Signal (No MMR)** | 100/100 | **0.0076** | **0.0035** | 0.0040 | 0.0073 | **0.0400** | 0.5763 | 50.59% (1,290 talks) | 11.8411 | 55.44 ms |
+| **Hybrid + MMR ($\lambda=0.7$)** | 100/100 | 0.0074 | 0.0033 | 0.0040 | 0.0073 | **0.0400** | **0.6953 (+20.6%)** | **54.16% (1,381 talks)** | 11.8487 | 81.12 ms |
 
-*Measurements taken across the full 2,550-talk catalogue running locally on Intel CPU.*
+*Measurements taken across the full 2,550-talk catalogue running locally on Intel CPU. Fair Comparison Verification: PASS.*
+
+---
+
+## Evaluation Status Taxonomy
+
+| Status Category | Components Included | Verification Method |
+|:---|:---|:---|
+| **Implemented** | 8 ranking metrics, 4 diversity/coverage metrics, sparse MMR algorithm, multi-field TF-IDF, Sentence-BERT semantic search, hybrid multi-signal fusion, cold-start fallback, configuration validator. | Source code implemented in `src/ted_recommender/` and `Module_5_Evaluation_Metrics/src/`. |
+| **Tested** | Metric correctness, boundary stress checks, duplicate handling, matrix bounds, simulated model failures, fair query verification, deterministic sampling, hand-calculated graded NDCG/MAP proofs. | **52 passed tests** in `pytest -v` (`tests/` and `Module_5_Evaluation_Metrics/tests/`). |
+| **Benchmark Executed** | Unified comparative benchmark across 100 stratified evaluation queries ($K \in \{5, 10, 20\}$) evaluating all 4 models under identical conditions. | `run_evaluation_pipeline.py` execution; outputs saved in `benchmark_summary_table.csv` and `unified_model_comparison_scorecard.json`. |
+| **Proxy Evaluation** | Relative model rankings using TED editorial `related_talks` as ground truth. | Documented as an automated editorial companion proxy, not live user interaction data. |
+| **Human Evaluation Pending** | 4-point graded qualitative evaluation template generated with 200 candidate pairs across 4 models and 10 representative queries. | Status: `PENDING_HUMAN_EVALUATION` (0/200 human grades assigned). No synthetic ratings generated. |
+| **Not Supported by Available Data** | Collaborative Filtering (matrix factorization, user-based or item-based collaborative filtering). | Formally documented as unsupported due to lack of per-user interaction identifiers in the public TED dataset. |
 
 ---
 
@@ -161,7 +174,7 @@ In adherence to scientific integrity:
 | **Module 2: Data Exploration & Preprocessing** | **COMPLETE (PASS)** | Cleaned text, transcription cue removal, missing transcript fallback |
 | **Module 3: Feature Engineering & Vectorization** | **COMPLETE (PASS)** | 4 TF-IDF vectorizers fitted; 2550×44,613 matrix; 2550×384 embeddings |
 | **Module 4: Develop Recommendation Engine** | **COMPLETE (PASS)** | TF-IDF, Semantic, Hybrid, MMR, Explanations, Personalisation; 20 tests passing |
-| **Module 5: Evaluation Metrics** | **COMPLETE (PASS)** | 8 ranking metrics, 4 diversity/coverage metrics, ground truth (2,544 queries), 4-model unified benchmark, performance profiling, 12/12 stress checks, human eval framework, 5 notebooks, 7 plots; 19 tests passing (39/39 total suite) |
+| **Module 5: Evaluation Metrics** | **COMPLETE (PASS)** | 8 ranking metrics, 4 diversity/coverage metrics, ground truth (2,544 queries), 4-model unified fair benchmark (100/100 queries each, strict fair verification passed), latency profiling, 12/12 stress checks, human eval framework (pending real annotations, 200 records prepared), 5 notebooks, 7 plots; 32 tests passing (52/52 total suite) |
 | **Module 6: Streamlit Deployment** | **PLANNED** | Scheduled for next milestone |
 | **Module 7: Presentation & Documentation** | **COMPLETE (PASS)** | Comprehensive technical reports in `docs/` (`MILESTONE_2_TECHNICAL_DOCUMENTATION.md` & `MODULE_5_EVALUATION_REPORT.md`) |
 

@@ -44,6 +44,29 @@ def test_intra_list_diversity_synthetic():
     assert intra_list_diversity([0], orthogonal_matrix) == 0.0
 
 
+def test_intra_list_diversity_bounds_and_nan_handling():
+    """Verify that out-of-bounds indices and non-finite values are handled safely."""
+    mat = np.array([
+        [1.0, 0.0],
+        [0.0, 1.0],
+    ], dtype=np.float32)
+
+    # Index 99 is out of bounds (matrix has only 2 rows). Valid indices: [0, 1].
+    ild = intra_list_diversity([0, 1, 99], mat)
+    assert pytest.approx(ild, abs=1e-4) == 1.0
+
+    # When all indices are out of bounds
+    assert intra_list_diversity([99, 100], mat) == 0.0
+
+    # Matrix with a zero-vector row (could cause NaN cosine sim)
+    zero_mat = np.array([
+        [1.0, 0.0],
+        [0.0, 0.0],
+    ], dtype=np.float32)
+    ild_zero = intra_list_diversity([0, 1], zero_mat)
+    assert not np.isnan(ild_zero)
+
+
 def test_topic_shannon_entropy():
     # Monolithic topics -> 0 entropy
     monolithic = [["tech", "tech"], ["tech"]]
@@ -93,4 +116,3 @@ def test_duplicate_and_exclusion_integrity():
     assert res_excl["is_clean"] is False
     assert res_excl["exclusion_violations_count"] == 1
     assert 99 in res_excl["violation_talk_ids"]
-

@@ -4,12 +4,14 @@ Module 5: Evaluation Metrics | Infosys Springboard 7.0
 
 Profiles:
 - Offline artifact loading time (vectorizers, embeddings, matrix deserialization).
-- Online per-query recommendation inference latency (mean, median, p90, p95, p99).
+- Online per-query recommendation inference latency (mean, median, std, p90, p95, p99).
 - Query throughput (QPS).
 - Process RAM consumption (RSS before and after loading).
+- Reports warmup count and timed iteration count transparently.
 """
 
 import gc
+import inspect
 import logging
 import time
 from typing import Any, Dict, List, Optional
@@ -57,7 +59,7 @@ class RecommenderPerformanceProfiler:
 
     def benchmark_query_latency(
         self,
-        recommender,
+        recommender: Any,
         model_name: str,
         test_talk_ids: List[int],
         num_warmup: int = 5,
@@ -69,35 +71,42 @@ class RecommenderPerformanceProfiler:
         Benchmark per-query inference latency over repeated trials.
         Strictly isolates online inference from offline loading.
         """
+        target_fn = recommender.recommend_for_talk if hasattr(recommender, "recommend_for_talk") else recommender.recommend
+        sig = inspect.signature(target_fn)
+        supports_apply_mmr = "apply_mmr" in sig.parameters
+
+        def dispatch_call(talk_id: int):
+            kwargs: Dict[str, Any] = {"top_k": top_k}
+            if "talk_id" in sig.parameters:
+                kwargs["talk_id"] = talk_id
+            elif "seed_talk_id" in sig.parameters:
+                kwargs["seed_talk_id"] = talk_id
+            if supports_apply_mmr:
+                kwargs["apply_mmr"] = apply_mmr
+            return target_fn(**kwargs)
+
         # 1. Warm-up runs to stabilize JIT/cache and load models into memory
         warmup_candidates = test_talk_ids[:num_warmup] if len(test_talk_ids) >= num_warmup else test_talk_ids
         for tid in warmup_candidates:
             try:
-                if hasattr(recommender, "recommend_for_talk"):
-                    try:
-                        _ = recommender.recommend_for_talk(talk_id=tid, top_k=top_k, apply_mmr=apply_mmr)
-                    except TypeError:
-                        _ = recommender.recommend_for_talk(talk_id=tid, top_k=top_k)
-                else:
-                    _ = recommender.recommend(seed_talk_id=tid, top_k=top_k, apply_mmr=apply_mmr)
-            except Exception:
-                pass
+                _ = dispatch_call(tid)
+            except Exception as e:
+                logger.debug(f"Warmup notice for talk {tid}: {e}")
 
         # 2. Timed inference trials
         latencies_ms: List[float] = []
+        failed_count = 0
 
         for _ in range(num_iterations):
             for tid in test_talk_ids:
                 t0 = time.perf_counter()
-                if hasattr(recommender, "recommend_for_talk"):
-                    try:
-                        _ = recommender.recommend_for_talk(talk_id=tid, top_k=top_k, apply_mmr=apply_mmr)
-                    except TypeError:
-                        _ = recommender.recommend_for_talk(talk_id=tid, top_k=top_k)
-                else:
-                    _ = recommender.recommend(seed_talk_id=tid, top_k=top_k, apply_mmr=apply_mmr)
-                lat_ms = (time.perf_counter() - t0) * 1000.0
-                latencies_ms.append(lat_ms)
+                try:
+                    _ = dispatch_call(tid)
+                    lat_ms = (time.perf_counter() - t0) * 1000.0
+                    latencies_ms.append(lat_ms)
+                except Exception as e:
+                    failed_count += 1
+                    logger.error(f"Latency benchmark error for query {tid} on {model_name}: {e}")
 
         total_queries = len(latencies_ms)
         total_time_sec = sum(latencies_ms) / 1000.0
@@ -105,19 +114,21 @@ class RecommenderPerformanceProfiler:
 
         return {
             "model_name": model_name,
+            "warmup_queries_executed": len(warmup_candidates),
+            "timed_iterations": num_iterations,
             "total_queries_profiled": total_queries,
+            "failed_queries_count": failed_count,
             "top_k": top_k,
             "apply_mmr": apply_mmr,
             "latency_ms": {
-                "mean": round(float(np.mean(latencies_ms)), 2),
-                "std": round(float(np.std(latencies_ms)), 2),
-                "median": round(float(np.median(latencies_ms)), 2),
-                "min": round(float(np.min(latencies_ms)), 2),
-                "max": round(float(np.max(latencies_ms)), 2),
-                "p90": round(float(np.percentile(latencies_ms, 90)), 2),
-                "p95": round(float(np.percentile(latencies_ms, 95)), 2),
-                "p99": round(float(np.percentile(latencies_ms, 99)), 2),
+                "mean": round(float(np.mean(latencies_ms)), 2) if latencies_ms else 0.0,
+                "std": round(float(np.std(latencies_ms)), 2) if latencies_ms else 0.0,
+                "median": round(float(np.median(latencies_ms)), 2) if latencies_ms else 0.0,
+                "min": round(float(np.min(latencies_ms)), 2) if latencies_ms else 0.0,
+                "max": round(float(np.max(latencies_ms)), 2) if latencies_ms else 0.0,
+                "p90": round(float(np.percentile(latencies_ms, 90)), 2) if latencies_ms else 0.0,
+                "p95": round(float(np.percentile(latencies_ms, 95)), 2) if latencies_ms else 0.0,
+                "p99": round(float(np.percentile(latencies_ms, 99)), 2) if latencies_ms else 0.0,
             },
             "throughput_queries_per_sec": round(qps, 1),
         }
-

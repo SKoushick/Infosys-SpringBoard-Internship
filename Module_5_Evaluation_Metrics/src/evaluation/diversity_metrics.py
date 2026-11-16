@@ -35,17 +35,27 @@ def intra_list_diversity(
         return 0.0
 
     idx_list = list(recommended_indices)
-    sub = feature_matrix[idx_list]
+    n_features = feature_matrix.shape[0]
+
+    # Validate that indices fall within matrix bounds
+    valid_indices = [idx for idx in idx_list if 0 <= idx < n_features]
+    if len(valid_indices) < 2:
+        return 0.0
+
+    sub = feature_matrix[valid_indices]
 
     if sparse.issparse(sub):
         sim_mat = (sub.dot(sub.T)).toarray()
     else:
         sim_mat = np.dot(sub, sub.T)
 
+    # Clean any non-finite entries caused by zero-norm rows
+    sim_mat = np.nan_to_num(sim_mat, nan=0.0, posinf=1.0, neginf=-1.0)
+
     # Cosine distance = 1 - cosine similarity
     dist_mat = 1.0 - sim_mat
 
-    n = len(idx_list)
+    n = len(valid_indices)
     triu_indices = np.triu_indices(n, k=1)
     pairwise_distances = dist_mat[triu_indices]
 
@@ -157,4 +167,3 @@ def duplicate_and_exclusion_integrity(
         "exclusion_violations_count": len(exclusion_violations),
         "violation_talk_ids": sorted(list(exclusion_violations)),
     }
-

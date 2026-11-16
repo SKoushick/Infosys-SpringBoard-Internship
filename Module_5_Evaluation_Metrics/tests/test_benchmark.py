@@ -14,9 +14,22 @@ from ted_recommender.recommender import (
     ContentBasedRecommender,
     SemanticRecommender,
     HybridRecommender,
+    RecommendationResult,
 )
-from evaluation.benchmark import UnifiedRecommenderBenchmark
+from evaluation.benchmark import UnifiedRecommenderBenchmark, ModelBenchmarkScorecard
 from evaluation.evaluation_dataset import EvaluationDatasetBuilder
+
+
+class FaultyRecommenderMock:
+    """Mock recommender wrapping a real recommender but intentionally throwing on a specific query."""
+    def __init__(self, real_rec, fail_query_id: int):
+        self.real_rec = real_rec
+        self.fail_query_id = fail_query_id
+
+    def recommend_for_talk(self, talk_id: int, top_k: int = 10, apply_mmr: bool = False):
+        if talk_id == self.fail_query_id:
+            raise RuntimeError(f"Simulated intentional failure on query {talk_id}")
+        return self.real_rec.recommend_for_talk(talk_id=talk_id, top_k=top_k, apply_mmr=apply_mmr)
 
 
 @pytest.fixture(scope="module")
@@ -41,6 +54,7 @@ def benchmark_fixture():
         feature_matrix=pipeline.embedding_matrix,
         id_to_idx=tfidf_rec.id_to_idx,
         idx_to_id=tfidf_rec.idx_to_id,
+        strict_mode=False,
     )
     return benchmark, tfidf_rec, semantic_rec, hybrid_rec, sample_queries
 
@@ -51,6 +65,8 @@ def test_unified_benchmark_execution(benchmark_fixture):
     # Test TF-IDF
     sc_tfidf, df_tfidf = benchmark.evaluate_model(tfidf_rec, "tfidf", "TF-IDF", query_ids, apply_mmr=False)
     assert sc_tfidf.num_queries_evaluated == len(query_ids)
+    assert sc_tfidf.requested_query_count == len(query_ids)
+    assert sc_tfidf.failed_query_count == 0
     assert sc_tfidf.catalogue_coverage_ratio > 0.0
 
     # Test Semantic
@@ -74,3 +90,66 @@ def test_unified_benchmark_execution(benchmark_fixture):
     assert sc_hyb.integrity_clean_rate == 1.0
     assert sc_mmr.integrity_clean_rate == 1.0
 
+    # Fair comparison verification across all 4 models
+    fair_report = benchmark.verify_fair_comparison({
+        "tfidf": sc_tfidf,
+        "semantic": sc_sem,
+        "hybrid": sc_hyb,
+        "hybrid_mmr": sc_mmr,
+    }, strict=True)
+    assert fair_report["is_fair"] is True
+    assert fair_report["common_query_count"] == len(query_ids)
+
+
+def test_simulated_model_failure_strict_mode_raises(benchmark_fixture):
+    """Verify that in strict mode, any failing query immediately raises RuntimeError."""
+    benchmark, tfidf_rec, _, _, query_ids = benchmark_fixture
+    failing_id = query_ids[0]
+    faulty_model = FaultyRecommenderMock(real_rec=tfidf_rec, fail_query_id=failing_id)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        benchmark.evaluate_model(
+            model=faulty_model,
+            model_id="faulty_model",
+            display_name="Faulty Model",
+            query_ids=query_ids,
+            strict=True,
+        )
+    assert f"query {failing_id}" in str(exc_info.value)
+
+
+def test_simulated_model_failure_detected_by_fair_verification(benchmark_fixture):
+    """
+    Verify that in non-strict mode, failing queries are recorded,
+    and verify_fair_comparison detects unequal query sets and prevents false claims.
+    """
+    benchmark, tfidf_rec, _, _, query_ids = benchmark_fixture
+    failing_id = query_ids[0]
+    faulty_model = FaultyRecommenderMock(real_rec=tfidf_rec, fail_query_id=failing_id)
+
+    # Succeeded model
+    sc_good, _ = benchmark.evaluate_model(tfidf_rec, "good_model", "Good Model", query_ids, strict=False)
+    assert sc_good.num_queries_evaluated == len(query_ids)
+    assert sc_good.failed_query_count == 0
+
+    # Faulty model skips 1 query
+    sc_faulty, _ = benchmark.evaluate_model(faulty_model, "faulty_model", "Faulty Model", query_ids, strict=False)
+    assert sc_faulty.num_queries_evaluated == len(query_ids) - 1
+    assert sc_faulty.failed_query_count == 1
+    assert sc_faulty.failed_query_ids == [failing_id]
+
+    # Verify fair comparison flags mismatch
+    fair_report = benchmark.verify_fair_comparison({
+        "good": sc_good,
+        "faulty": sc_faulty,
+    }, strict=False)
+    assert fair_report["is_fair"] is False
+    assert "Unfair benchmark comparison detected" in fair_report["error"]
+
+    # Verify fair comparison in strict mode raises ValueError
+    with pytest.raises(ValueError) as exc_info:
+        benchmark.verify_fair_comparison({
+            "good": sc_good,
+            "faulty": sc_faulty,
+        }, strict=True)
+    assert "Unfair benchmark" in str(exc_info.value)

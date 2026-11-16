@@ -22,6 +22,10 @@ def test_catalogue_coverage():
 
     # Zero catalogue
     assert catalogue_coverage(recs, total_catalogue_size=0)["coverage_ratio"] == 0.0
+    # Negative catalogue
+    assert catalogue_coverage(recs, total_catalogue_size=-5)["coverage_ratio"] == 0.0
+    # Empty recs
+    assert catalogue_coverage([], total_catalogue_size=10)["coverage_ratio"] == 0.0
 
 
 def test_recommendation_novelty():
@@ -38,6 +42,8 @@ def test_recommendation_novelty():
 
     # Empty
     assert recommendation_novelty([], views_map)["mean_novelty_bits"] == 0.0
+    # Views map with zero or empty
+    assert recommendation_novelty([1, 2], {})["mean_novelty_bits"] == 0.0
 
 
 def test_gini_coefficient_recommendations():
@@ -51,3 +57,7 @@ def test_gini_coefficient_recommendations():
     gini_unequal = gini_coefficient_recommendations(unequal_recs, total_catalogue_size=100)
     assert gini_unequal > 0.9  # High inequality
 
+    # Empty recommendations
+    assert gini_coefficient_recommendations([], total_catalogue_size=50) == 0.0
+    # Zero or negative catalogue size
+    assert gini_coefficient_recommendations([1, 2], total_catalogue_size=0) == 0.0
