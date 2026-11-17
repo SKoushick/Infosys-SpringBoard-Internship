@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}{{ talk.title }} — TEDMind{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{% url 'talks:home' %}" class="text-decoration-none text-muted">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'talks:explore' %}" class="text-decoration-none text-muted">Explore</a></li>
+      <li class="breadcrumb-item active text-truncate" style="max-width: 300px;" aria-current="page">{{ talk.title }}</li>
+    </ol>
+  </nav>
+
+  <!-- Talk Header & Details Card -->
+  <div class="card border-0 shadow-sm rounded-3 mb-5 overflow-hidden bg-white">
+    <!-- Talk Visual Banner -->
+    <div class="p-4 p-md-5 text-white" style="background: linear-gradient(135deg, #111111 0%, #2b0b0b 100%);">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <span class="badge bg-danger px-3 py-2 text-uppercase fw-bold" style="font-size: 0.75rem;">
+              <i class="bi bi-broadcast me-1"></i> {{ talk.event }}
+            </span>
+            <span class="badge bg-dark border border-secondary px-3 py-2">
+              <i class="bi bi-calendar3 me-1"></i> {{ talk.published_year }}
+            </span>
+            {% if talk.has_transcript %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2">
+              <i class="bi bi-file-earmark-text me-1"></i> Full Transcript Verified
+            </span>
+            {% else %}
+            <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2">
+              <i class="bi bi-exclamation-triangle me-1"></i> Fallback Metadata Representation
+            </span>
+            {% endif %}
+          </div>
+
+          <h1 class="fw-bold mb-3 display-6">{{ talk.title }}</h1>
+          
+          <div class="fs-5 mb-0 text-light opacity-90">
+            <i class="bi bi-person-fill text-danger me-1"></i> {{ talk.main_speaker }}
+            {% if talk.speaker_occupation %}
+            <span class="text-secondary fs-6">• {{ talk.speaker_occupation }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+          <div class="d-flex flex-column gap-2 justify-content-lg-end">
+            <a href="{% url 'recommendations:form' %}?talk_id={{ talk.talk_id }}" class="btn btn-ted btn-lg shadow">
+              <i class="bi bi-sparkles me-2"></i> Recommend Similar Talks
+            </a>
+            <div class="d-flex gap-2 justify-content-lg-end">
+              <a href="{% url 'talks:toggle_save' talk.talk_id %}" class="btn btn-outline-light btn-save-talk">
+                <i class="bi {% if is_saved %}bi-bookmark-fill text-danger{% else %}bi-bookmark{% endif %} me-1"></i>
+                <span class="btn-save-text">{% if is_saved %}Saved to Profile{% else %}Save Talk{% endif %}</span>
+              </a>
+              {% if talk.url %}
+              <a href="{{ talk.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light">
+                <i class="bi bi-box-arrow-up-right me-1"></i> Watch on TED.com
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats Bar -->
+    <div class="border-bottom bg-light py-3 px-4 px-md-5">
+      <div class="row text-center text-md-start g-3">
+        <div class="col-md-3 col-6">
+          <small class="text-muted d-block">Total Views</small>
+          <strong class="fs-5 text-dark"><i class="bi bi-eye text-danger me-1"></i>{{ talk.views_formatted }}</strong>
+        </div>
+        <div class="col-md-3 col-6">
+          <small class="text-muted d-block">Duration</small>
+          <strong class="fs-5 text-dark"><i class="bi bi-clock text-primary me-1"></i>{{ talk.duration_minutes }} minutes</strong>
+        </div>
+        <div class="col-md-3 col-6">
+          <small class="text-muted d-block">Catalogue Talk ID</small>
+          <strong class="fs-5 text-dark">#{{ talk.talk_id }}</strong>
+        </div>
+        <div class="col-md-3 col-6">
+          <small class="text-muted d-block">Tags Count</small>
+          <strong class="fs-5 text-dark"><i class="bi bi-tags text-success me-1"></i>{{ talk.tags|length }} Topics</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Talk Body -->
+    <div class="p-4 p-md-5">
+      <h5 class="fw-bold mb-3">About this TED Presentation</h5>
+      <p class="fs-6 text-secondary leading-relaxed mb-4" style="line-height: 1.8;">
+        {{ talk.description }}
+      </p>
+
+      <h6 class="fw-bold text-muted text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">Topical Subjects & Themes:</h6>
+      <div class="d-flex flex-wrap gap-1 mb-4">
+        {% for tag in talk.tags %}
+        <a href="{% url 'talks:explore' %}?tag={{ tag|urlencode }}" class="tag-pill px-3 py-1">
+          #{{ tag }}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Immediate Preview of Similar Recommendations -->
+  {% if similar_talks %}
+  <div class="mb-5">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+      <div>
+        <h6 class="text-danger text-uppercase fw-bold mb-1" style="font-size: 0.8rem; letter-spacing: 1px;">Instant ML Preview</h6>
+        <h3 class="fw-bold mb-0">Recommended Companion Talks</h3>
+      </div>
+      <a href="{% url 'recommendations:form' %}?talk_id={{ talk.talk_id }}" class="btn btn-outline-ted">
+        Customize Model & Top-K <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-4">
+      {% for item in similar_talks %}
+      <div class="col-md-4">
+        <div class="card-talk">
+          <div class="card-talk-banner variant-red">
+            <span class="event-badge">{{ item.event }}</span>
+            <div class="text-center">
+              <span class="score-pill bg-white text-dark shadow-sm">
+                <i class="bi bi-bullseye text-danger"></i> {{ item.match_pct }}% Match
+              </span>
+            </div>
+            <span class="duration-badge"><i class="bi bi-clock me-1"></i>{{ item.duration_minutes }}m</span>
+          </div>
+
+          <div class="card-talk-body">
+            <h5 class="talk-title">
+              <a href="{% url 'talks:detail' item.talk_id %}">{{ item.title }}</a>
+            </h5>
+            <div class="talk-speaker">
+              <i class="bi bi-person me-1"></i>{{ item.main_speaker }}
+            </div>
+
+            <p class="talk-description">{{ item.description }}</p>
+
+            <!-- Explanation Box -->
+            <div class="explanation-box mb-3">
+              <div class="rationale-text"><i class="bi bi-info-circle me-1 text-danger"></i>Why Recommended:</div>
+              <div class="small text-muted">{{ item.explanation.rationale }}</div>
+              {% if item.explanation.shared_tags %}
+              <div class="shared-tags mt-1">Shared Themes: {{ item.explanation.shared_tags|slice:":3"|join:", " }}</div>
+              {% endif %}
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+              <span class="text-muted small"><i class="bi bi-eye me-1"></i>{{ item.views_formatted }}</span>
+              <div class="d-flex gap-1">
+                <a href="{% url 'talks:toggle_save' item.talk_id %}" class="btn btn-sm btn-outline-secondary btn-save-talk">
+                  <i class="bi {% if item.talk_id in saved_talk_ids %}bi-bookmark-fill text-danger{% else %}bi-bookmark{% endif %}"></i>
+                </a>
+                <a href="{% url 'talks:detail' item.talk_id %}" class="btn btn-sm btn-dark">View Details</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

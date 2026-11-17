@@ -1,6 +1,6 @@
 {
   "evaluation_metadata": {
-    "timestamp": "2026-11-16T18:37:57.855512",
+    "timestamp": "2026-11-17T19:09:28.692020",
     "project_name": "Personalized TED Talks Recommendation System - Module 5 Evaluation Metrics",
     "version": "1.1.0",
     "random_seed": 42,
@@ -227,9 +227,9 @@
         "GiniExposureIndex": 0.6063
       },
       "performance_and_integrity": {
-        "MeanLatencyMs": 32.25,
-        "MedianLatencyMs": 31.14,
-        "P95LatencyMs": 46.27,
+        "MeanLatencyMs": 28.96,
+        "MedianLatencyMs": 28.06,
+        "P95LatencyMs": 39.02,
         "IntegrityCleanRate": 1.0
       }
     },
@@ -370,9 +370,9 @@
         "GiniExposureIndex": 0.6377
       },
       "performance_and_integrity": {
-        "MeanLatencyMs": 35.13,
-        "MedianLatencyMs": 32.59,
-        "P95LatencyMs": 54.62,
+        "MeanLatencyMs": 23.64,
+        "MedianLatencyMs": 21.33,
+        "P95LatencyMs": 40.69,
         "IntegrityCleanRate": 1.0
       }
     },
@@ -513,9 +513,9 @@
         "GiniExposureIndex": 0.6206
       },
       "performance_and_integrity": {
-        "MeanLatencyMs": 55.44,
-        "MedianLatencyMs": 54.13,
-        "P95LatencyMs": 79.62,
+        "MeanLatencyMs": 34.83,
+        "MedianLatencyMs": 32.92,
+        "P95LatencyMs": 48.61,
         "IntegrityCleanRate": 1.0
       }
     },
@@ -656,9 +656,9 @@
         "GiniExposureIndex": 0.58
       },
       "performance_and_integrity": {
-        "MeanLatencyMs": 81.12,
-        "MedianLatencyMs": 80.87,
-        "P95LatencyMs": 110.01,
+        "MeanLatencyMs": 51.2,
+        "MedianLatencyMs": 50.06,
+        "P95LatencyMs": 61.34,
         "IntegrityCleanRate": 1.0
       }
     }

@@ -1,10 +1,10 @@
 {
   "offline_artifact_loading": {
     "load_successful": true,
-    "offline_loading_seconds": 0.889,
-    "memory_before_load_mb": 430.6,
-    "memory_after_load_mb": 454.34,
-    "memory_increase_mb": 23.74
+    "offline_loading_seconds": 0.655,
+    "memory_before_load_mb": 430.2,
+    "memory_after_load_mb": 454.25,
+    "memory_increase_mb": 24.05
   },
   "online_query_latency_profiles": {
     "tfidf": {
@@ -16,16 +16,16 @@
       "top_k": 10,
       "apply_mmr": false,
       "latency_ms": {
-        "mean": 22.95,
-        "std": 5.85,
-        "median": 22.48,
-        "min": 12.82,
-        "max": 43.02,
-        "p90": 31.24,
-        "p95": 35.16,
-        "p99": 37.68
+        "mean": 23.29,
+        "std": 5.12,
+        "median": 22.87,
+        "min": 14.11,
+        "max": 44.36,
+        "p90": 29.21,
+        "p95": 32.38,
+        "p99": 37.97
       },
-      "throughput_queries_per_sec": 43.6
+      "throughput_queries_per_sec": 42.9
     },
     "semantic": {
       "model_name": "Sentence-BERT Semantic",
@@ -36,16 +36,16 @@
       "top_k": 10,
       "apply_mmr": false,
       "latency_ms": {
-        "mean": 20.17,
-        "std": 5.76,
-        "median": 19.3,
-        "min": 10.34,
-        "max": 39.4,
-        "p90": 27.73,
-        "p95": 30.9,
-        "p99": 37.01
+        "mean": 10.35,
+        "std": 2.27,
+        "median": 10.35,
+        "min": 6.55,
+        "max": 16.82,
+        "p90": 13.49,
+        "p95": 14.1,
+        "p99": 16.29
       },
-      "throughput_queries_per_sec": 49.6
+      "throughput_queries_per_sec": 96.6
     },
     "hybrid": {
       "model_name": "Hybrid Multi-Signal (No MMR)",
@@ -56,16 +56,16 @@
       "top_k": 10,
       "apply_mmr": false,
       "latency_ms": {
-        "mean": 37.44,
-        "std": 11.39,
-        "median": 36.38,
-        "min": 17.64,
-        "max": 84.74,
-        "p90": 49.42,
-        "p95": 56.5,
-        "p99": 79.31
+        "mean": 31.2,
+        "std": 8.33,
+        "median": 29.89,
+        "min": 13.69,
+        "max": 66.46,
+        "p90": 40.73,
+        "p95": 43.55,
+        "p99": 65.08
       },
-      "throughput_queries_per_sec": 26.7
+      "throughput_queries_per_sec": 32.1
     },
     "hybrid_mmr": {
       "model_name": "Hybrid Multi-Signal + MMR",
@@ -76,16 +76,16 @@
       "top_k": 10,
       "apply_mmr": true,
       "latency_ms": {
-        "mean": 53.48,
-        "std": 16.02,
-        "median": 52.21,
-        "min": 28.56,
-        "max": 119.99,
-        "p90": 69.22,
-        "p95": 82.81,
-        "p99": 116.56
+        "mean": 37.32,
+        "std": 7.58,
+        "median": 36.16,
+        "min": 22.92,
+        "max": 88.86,
+        "p90": 45.17,
+        "p95": 48.67,
+        "p99": 51.49
       },
-      "throughput_queries_per_sec": 18.7
+      "throughput_queries_per_sec": 26.8
     }
   }
 }

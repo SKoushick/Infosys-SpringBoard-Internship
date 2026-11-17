@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Explore 2,550 TED Talks — TEDMind{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Header & Filter Bar -->
+  <div class="row align-items-center mb-4 g-3">
+    <div class="col-lg-6">
+      <h2 class="fw-bold mb-1"><i class="bi bi-compass text-danger me-2"></i>Explore TED Talks Catalog</h2>
+      <p class="text-muted small mb-0">Browse and search through 2,550 presentations across science, technology, art, and society.</p>
+    </div>
+    <div class="col-lg-6 text-lg-end">
+      <span class="badge bg-white text-dark border px-3 py-2 fs-6 shadow-sm">
+        <strong>{{ total_count }}</strong> talks found
+      </span>
+    </div>
+  </div>
+
+  <!-- Search & Filter Card -->
+  <div class="card border-0 shadow-sm rounded-3 mb-4 bg-white">
+    <div class="card-body p-3 p-md-4">
+      <form action="{% url 'talks:explore' %}" method="GET" class="row g-2 align-items-end">
+        <div class="col-md-5 col-12">
+          <label class="form-label small fw-semibold text-muted mb-1">Search Keywords</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="Title, topic, or description...">
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6 col-12">
+          <label class="form-label small fw-semibold text-muted mb-1">Filter by Topic Tag</label>
+          <select name="tag" class="form-select">
+            <option value="">All Topics</option>
+            {% for tag_item, count in top_tags %}
+            <option value="{{ tag_item }}" {% if selected_tag == tag_item %}selected{% endif %}>
+              {{ tag_item }} ({{ count }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-2 col-sm-6 col-12">
+          <label class="form-label small fw-semibold text-muted mb-1">Speaker Name</label>
+          <input type="text" name="speaker" value="{{ selected_speaker }}" class="form-control" placeholder="e.g. Al Gore">
+        </div>
+
+        <div class="col-md-2 col-12 d-flex gap-2">
+          <button type="submit" class="btn btn-ted w-100">Filter</button>
+          {% if query or selected_tag or selected_speaker %}
+          <a href="{% url 'talks:explore' %}" class="btn btn-outline-secondary" title="Reset Filters"><i class="bi bi-x-lg"></i></a>
+          {% endif %}
+        </div>
+      </form>
+
+      <!-- Active Filters Display -->
+      {% if query or selected_tag or selected_speaker %}
+      <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-3 border-top small">
+        <span class="text-muted">Active Filters:</span>
+        {% if query %}<span class="badge bg-light text-dark border">Query: "{{ query }}"</span>{% endif %}
+        {% if selected_tag %}<span class="badge bg-danger-subtle text-danger border">Topic: #{{ selected_tag }}</span>{% endif %}
+        {% if selected_speaker %}<span class="badge bg-light text-dark border">Speaker: {{ selected_speaker }}</span>{% endif %}
+        <a href="{% url 'talks:explore' %}" class="text-danger text-decoration-none ms-auto"><i class="bi bi-x-circle me-1"></i>Clear all filters</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Talks Grid -->
+  {% if talks %}
+  <div class="row g-4 mb-5">
+    {% for talk in talks %}
+    <div class="col-lg-4 col-md-6">
+      <div class="card-talk">
+        <!-- Banner with Event and Duration -->
+        <div class="card-talk-banner {% cycle 'variant-red' 'variant-blue' 'variant-purple' 'variant-teal' %}">
+          <span class="event-badge">{{ talk.event }}</span>
+          <div class="px-3">
+            <i class="bi bi-chat-quote fs-2 opacity-75"></i>
+          </div>
+          <span class="duration-badge"><i class="bi bi-clock me-1"></i>{{ talk.duration_minutes }}m</span>
+        </div>
+
+        <div class="card-talk-body">
+          <h5 class="talk-title">
+            <a href="{% url 'talks:detail' talk.talk_id %}">{{ talk.title }}</a>
+          </h5>
+          <div class="talk-speaker">
+            <i class="bi bi-person me-1"></i>{{ talk.main_speaker }}
+            {% if talk.speaker_occupation %}<span class="text-muted small">• {{ talk.speaker_occupation }}</span>{% endif %}
+          </div>
+
+          <p class="talk-description">{{ talk.description }}</p>
+
+          <div class="mb-3">
+            {% for t in talk.tags_preview %}
+            <a href="{% url 'talks:explore' %}?tag={{ t|urlencode }}" class="tag-pill">#{{ t }}</a>
+            {% endfor %}
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+            <div class="text-muted small">
+              <i class="bi bi-eye text-secondary me-1"></i>{{ talk.views_formatted }}
+            </div>
+            <div class="d-flex gap-1">
+              <a href="{% url 'talks:toggle_save' talk.talk_id %}" class="btn btn-sm btn-outline-secondary btn-save-talk" title="Save talk">
+                <i class="bi {% if talk.talk_id in saved_talk_ids %}bi-bookmark-fill text-danger{% else %}bi-bookmark{% endif %}"></i>
+              </a>
+              <a href="{% url 'recommendations:form' %}?talk_id={{ talk.talk_id }}" class="btn btn-sm btn-outline-danger" title="Recommend talks similar to this">
+                <i class="bi bi-sparkles me-1"></i> Similar
+              </a>
+              <a href="{% url 'talks:detail' talk.talk_id %}" class="btn btn-sm btn-dark">
+                Details
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination Controls -->
+  {% if total_pages > 1 %}
+  <nav aria-label="Catalog pagination" class="my-4">
+    <ul class="pagination justify-content-center">
+      {% if has_prev %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ prev_page }}{% if query %}&q={{ query }}{% endif %}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}{% if selected_speaker %}&speaker={{ selected_speaker }}{% endif %}">
+          <i class="bi bi-chevron-left me-1"></i> Previous
+        </a>
+      </li>
+      {% else %}
+      <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left me-1"></i> Previous</span></li>
+      {% endif %}
+
+      <li class="page-item active">
+        <span class="page-link bg-danger border-danger">Page {{ current_page }} of {{ total_pages }}</span>
+      </li>
+
+      {% if has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ next_page }}{% if query %}&q={{ query }}{% endif %}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}{% if selected_speaker %}&speaker={{ selected_speaker }}{% endif %}">
+          Next <i class="bi bi-chevron-right ms-1"></i>
+        </a>
+      </li>
+      {% else %}
+      <li class="page-item disabled"><span class="page-link">Next <i class="bi bi-chevron-right ms-1"></i></span></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <!-- Empty State -->
+  <div class="card border-0 shadow-sm p-5 text-center my-4">
+    <div class="text-danger mb-3"><i class="bi bi-search fs-1"></i></div>
+    <h4 class="fw-bold">No TED Talks Matched Your Criteria</h4>
+    <p class="text-muted mx-auto mb-4" style="max-width: 480px;">
+      We couldn't find any talks matching your current filters. Try searching with broader terms or clear your active filters.
+    </p>
+    <div>
+      <a href="{% url 'talks:explore' %}" class="btn btn-ted px-4">Reset All Filters</a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

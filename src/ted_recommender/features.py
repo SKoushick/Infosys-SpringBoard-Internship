@@ -219,9 +219,16 @@ class FeaturePipeline:
 
     def transform_query_embedding(self, query_text: str) -> np.ndarray:
         """Embed an unseen text query using the pretrained embedding model."""
-        from sentence_transformers import SentenceTransformer
-        model = SentenceTransformer(self.embedding_model_name)
-        vec = model.encode([query_text], normalize_embeddings=True)
+        if not hasattr(self, "_sbert_model") or self._sbert_model is None:
+            import os
+            os.environ["HF_HUB_OFFLINE"] = "1"
+            os.environ["TRANSFORMERS_OFFLINE"] = "1"
+            from sentence_transformers import SentenceTransformer
+            try:
+                self._sbert_model = SentenceTransformer(self.embedding_model_name, local_files_only=True)
+            except Exception:
+                self._sbert_model = SentenceTransformer(self.embedding_model_name)
+        vec = self._sbert_model.encode([query_text], normalize_embeddings=True)
         return np.asarray(vec[0], dtype=np.float32)
 
     def save_artifacts(

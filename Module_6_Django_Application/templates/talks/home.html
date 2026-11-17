@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}TEDMind — Personalized TED Talks Discovery{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container text-center">
+    <div class="badge bg-danger text-uppercase px-3 py-2 mb-3 rounded-pill" style="letter-spacing: 1px; font-size: 0.75rem;">
+      <i class="bi bi-cpu me-1"></i> Machine Learning Recommender System
+    </div>
+    <h1 class="hero-title mb-3">
+      Ideas worth spreading,<br>
+      <span class="text-danger">personalized</span> around your interests.
+    </h1>
+    <p class="hero-subtitle mx-auto mb-4">
+      Explore 2,550 inspiring TED presentations powered by Natural Language Processing, Sentence-BERT semantic embeddings, and Maximal Marginal Relevance diversification.
+    </p>
+
+    <!-- Main Search & Action Bar -->
+    <div class="col-lg-7 col-md-9 mx-auto mb-4">
+      <form action="{% url 'talks:explore' %}" method="GET" class="shadow-sm rounded-pill p-1 bg-white border">
+        <div class="input-group">
+          <span class="input-group-text bg-transparent border-0 ps-3 text-muted">
+            <i class="bi bi-search fs-5"></i>
+          </span>
+          <input type="text" name="q" class="form-control border-0 shadow-none ps-2" placeholder="Search by topic, speaker, or keyword (e.g. artificial intelligence)...">
+          <button class="btn btn-ted rounded-pill px-4" type="submit">Search</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Quick Interest Pills -->
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-1 mb-4">
+      <span class="text-muted small me-2"><i class="bi bi-fire text-danger"></i> Trending Topics:</span>
+      {% for tag, count in top_tags|slice:":8" %}
+      <a href="{% url 'talks:explore' %}?tag={{ tag|urlencode }}" class="tag-pill">
+        #{{ tag }}
+      </a>
+      {% endfor %}
+    </div>
+
+    <!-- Quick Action CTA Buttons -->
+    <div class="d-flex justify-content-center gap-3">
+      <a href="{% url 'recommendations:form' %}" class="btn btn-ted btn-lg px-4 shadow">
+        <i class="bi bi-stars me-1"></i> Get Recommendations
+      </a>
+      <a href="{% url 'talks:explore' %}" class="btn btn-outline-dark btn-lg px-4">
+        <i class="bi bi-compass me-1"></i> Explore All 2,550 Talks
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Engine Metrics Bar -->
+<section class="py-3 bg-white border-bottom">
+  <div class="container">
+    <div class="row text-center g-3">
+      <div class="col-md-3 col-6 border-end">
+        <div class="fs-4 fw-bold text-danger">2,550</div>
+        <div class="text-muted small">Curated TED Talks</div>
+      </div>
+      <div class="col-md-3 col-6 border-end">
+        <div class="fs-4 fw-bold text-dark">44,613</div>
+        <div class="text-muted small">TF-IDF Feature Space</div>
+      </div>
+      <div class="col-md-3 col-6 border-end">
+        <div class="fs-4 fw-bold text-dark">384-Dim</div>
+        <div class="text-muted small">Dense MiniLM Embeddings</div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="fs-4 fw-bold text-success"><i class="bi bi-lightning-charge-fill"></i> &lt; 50 ms</div>
+        <div class="text-muted small">Sub-Second Live Latency</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured TED Talks Section -->
+<section class="py-5">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+      <div>
+        <h6 class="text-danger text-uppercase fw-bold mb-1" style="font-size: 0.8rem; letter-spacing: 1px;">Selected Highlights</h6>
+        <h2 class="fw-bold text-dark mb-0">Featured TED Presentations</h2>
+      </div>
+      <a href="{% url 'talks:explore' %}" class="btn btn-sm btn-outline-secondary">
+        View All Catalog <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-4">
+      {% for talk in featured_talks %}
+      <div class="col-lg-4 col-md-6">
+        <div class="card-talk">
+          <!-- Card Banner Header -->
+          <div class="card-talk-banner {% cycle 'variant-red' 'variant-blue' 'variant-purple' 'variant-teal' %}">
+            <span class="event-badge">{{ talk.event }}</span>
+            <div class="px-3">
+              <i class="bi bi-chat-square-quote fs-2 opacity-75"></i>
+            </div>
+            <span class="duration-badge"><i class="bi bi-clock me-1"></i>{{ talk.duration_minutes }}m</span>
+          </div>
+
+          <div class="card-talk-body">
+            <h5 class="talk-title">
+              <a href="{% url 'talks:detail' talk.talk_id %}">{{ talk.title }}</a>
+            </h5>
+            <div class="talk-speaker">
+              <i class="bi bi-person me-1"></i>{{ talk.main_speaker }}
+              {% if talk.speaker_occupation %}<span class="text-muted small">• {{ talk.speaker_occupation }}</span>{% endif %}
+            </div>
+
+            <p class="talk-description">{{ talk.description }}</p>
+
+            <div class="mb-3">
+              {% for tag in talk.tags_preview %}
+              <a href="{% url 'talks:explore' %}?tag={{ tag|urlencode }}" class="tag-pill">#{{ tag }}</a>
+              {% endfor %}
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+              <div class="text-muted small">
+                <i class="bi bi-eye text-secondary me-1"></i>{{ talk.views_formatted }}
+              </div>
+              <div class="d-flex gap-1">
+                <a href="{% url 'talks:toggle_save' talk.talk_id %}" class="btn btn-sm btn-outline-secondary btn-save-talk" title="Save to session profile">
+                  <i class="bi {% if talk.talk_id in saved_talk_ids %}bi-bookmark-fill text-danger{% else %}bi-bookmark{% endif %}"></i>
+                </a>
+                <a href="{% url 'recommendations:form' %}?talk_id={{ talk.talk_id }}" class="btn btn-sm btn-outline-danger" title="Recommend talks similar to this">
+                  <i class="bi bi-sparkles me-1"></i> Similar
+                </a>
+                <a href="{% url 'talks:detail' talk.talk_id %}" class="btn btn-sm btn-dark">
+                  Details
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Recommendation Approaches Overview -->
+<section class="py-5 bg-white border-top border-bottom">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h6 class="text-danger text-uppercase fw-bold" style="font-size: 0.8rem; letter-spacing: 1px;">Core Engine Architectures</h6>
+      <h2 class="fw-bold">How TEDMind Recommends Talks</h2>
+      <p class="text-muted mx-auto" style="max-width: 620px;">
+        Rather than relying on generic keywords or synthetic collaborative filtering, our system implements rigorous content-based and transformer models.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="p-4 border rounded-3 h-100 bg-light shadow-sm">
+          <div class="rounded-circle bg-danger text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+            <i class="bi bi-file-text fs-4"></i>
+          </div>
+          <h4 class="fw-bold fs-5">Multi-Field TF-IDF</h4>
+          <p class="text-muted small">
+            Extracts unigrams and bigrams across 4 separate metadata channels (Title, Description, Tags, and Full Transcripts) with field-weight optimization over 44,613 features.
+          </p>
+          <div class="badge bg-secondary-subtle text-dark border">Lexical Term Matching</div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="p-4 border rounded-3 h-100 bg-light shadow-sm">
+          <div class="rounded-circle bg-dark text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+            <i class="bi bi-cpu fs-4"></i>
+          </div>
+          <h4 class="fw-bold fs-5">Sentence Transformers</h4>
+          <p class="text-muted small">
+            Generates 384-dimensional dense semantic embeddings using <code>all-MiniLM-L6-v2</code>. Captures conceptual themes and latent analogies beyond exact vocabulary overlap.
+          </p>
+          <div class="badge bg-secondary-subtle text-dark border">Dense Conceptual Vectors</div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="p-4 border rounded-3 h-100 bg-light shadow-sm">
+          <div class="rounded-circle bg-danger text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+            <i class="bi bi-diagram-3 fs-4"></i>
+          </div>
+          <h4 class="fw-bold fs-5">Hybrid MMR Fusion</h4>
+          <p class="text-muted small">
+            Fuses lexical and semantic signals while applying Maximal Marginal Relevance (MMR, $\lambda=0.70$) to balance high relevance with topic and perspective diversity.
+          </p>
+          <div class="badge bg-danger-subtle text-danger border">Optimal Accuracy & Diversity</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section class="py-5" style="background: linear-gradient(135deg, #111111 0%, #1f2937 100%);">
+  <div class="container text-center text-white py-4">
+    <h2 class="fw-bold mb-3">Ready to discover your next favorite TED Talk?</h2>
+    <p class="text-secondary mx-auto mb-4" style="max-width: 600px;">
+      Choose a talk you already love, select topics of interest, or describe in plain English what you want to learn today.
+    </p>
+    <a href="{% url 'recommendations:form' %}" class="btn btn-ted btn-lg px-5 py-3 fs-6">
+      <i class="bi bi-sparkles me-2"></i> Open Recommendation Hub
+    </a>
+  </div>
+</section>
+{% endblock %}

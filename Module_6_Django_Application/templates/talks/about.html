@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}About TEDMind — Architecture & Evaluation{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="col-lg-10 mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-5">
+      <div class="badge bg-danger text-uppercase px-3 py-2 mb-2 rounded-pill">Infosys Springboard Internship 7.0</div>
+      <h1 class="fw-bold display-6">Personalized TED Talks Recommendation System</h1>
+      <p class="text-muted lead">Academic & Engineering Milestone Documentation: Modules 1 through 6</p>
+    </div>
+
+    <!-- 1. Problem Statement & Solution -->
+    <div class="card border-0 shadow-sm p-4 p-md-5 mb-4 bg-white rounded-3">
+      <h3 class="fw-bold mb-3 text-dark"><i class="bi bi-bullseye text-danger me-2"></i>Problem Statement</h3>
+      <p class="text-secondary leading-relaxed">
+        TED curates a large and diverse collection of talks spanning technology, science, education, business, healthcare, culture, creativity, and global challenges. However, users frequently struggle to navigate this extensive repository to discover talks that closely align with their personal interests and conceptual curiosity.
+      </p>
+      <p class="text-secondary leading-relaxed mb-0">
+        The objective of this project is to build an end-to-end, reproducible, modular, explainable, and production-ready recommendation system that extracts rich multi-modal textual signals from TED Talk content and delivers relevant, diverse, and transparent recommendations.
+      </p>
+    </div>
+
+    <!-- 2. System Architecture -->
+    <div class="card border-0 shadow-sm p-4 p-md-5 mb-4 bg-white rounded-3">
+      <h3 class="fw-bold mb-4 text-dark"><i class="bi bi-diagram-3 text-danger me-2"></i>Recommendation Strategies</h3>
+      
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="p-3 border rounded bg-light h-100">
+            <h5 class="fw-bold text-danger">1. TF-IDF Content-Based</h5>
+            <p class="small text-muted mb-0">
+              Extracts multi-field n-grams across Talk Title, Description, Tags, and Full Transcripts, producing a sparse 44,613-dimensional feature space with field-weight optimization. Excels at exact keyword, speaker, and terminology matching.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="p-3 border rounded bg-light h-100">
+            <h5 class="fw-bold text-dark">2. Sentence Transformers</h5>
+            <p class="small text-muted mb-0">
+              Encodes talk content into 384-dimensional dense semantic vectors using <code>all-MiniLM-L6-v2</code>. Captures deep conceptual themes, synonyms, and latent topical analogies without requiring exact vocabulary overlap.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="p-3 border rounded bg-light h-100">
+            <h5 class="fw-bold text-success">3. Multi-Signal Hybrid + MMR</h5>
+            <p class="small text-muted mb-0">
+              Combines lexical similarity, semantic embeddings, and user topical boosts. Applies Maximal Marginal Relevance (MMR, $\lambda=0.70$) with sparse matrix slicing to prevent redundancy and boost intra-list diversity by +20.6%.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Module 5 Verified Evaluation Scorecard -->
+    <div class="card border-0 shadow-sm p-4 p-md-5 mb-4 bg-white rounded-3">
+      <h3 class="fw-bold mb-2 text-dark"><i class="bi bi-graph-up text-danger me-2"></i>Module 5: Empirical Benchmark Scorecard</h3>
+      <p class="text-muted small mb-4">
+        Evaluated under strict identical candidate sets across 100 stratified ground-truth queries ($K=10$) with zero data leakage:
+      </p>
+
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle small">
+          <thead class="table-dark">
+            <tr>
+              <th>Recommendation Strategy</th>
+              <th class="text-center">NDCG@10</th>
+              <th class="text-center">MAP@10</th>
+              <th class="text-center">Precision@10</th>
+              <th class="text-center">Recall@10</th>
+              <th class="text-center">Diversity (ILD)</th>
+              <th class="text-center">Coverage (%)</th>
+              <th class="text-center">Mean Latency</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>TF-IDF Content-Based</strong></td>
+              <td class="text-center">0.0063</td>
+              <td class="text-center">0.0026</td>
+              <td class="text-center">0.0040</td>
+              <td class="text-center"><strong>0.0077</strong></td>
+              <td class="text-center">0.6851</td>
+              <td class="text-center">51.88%</td>
+              <td class="text-center">32.25 ms</td>
+            </tr>
+            <tr>
+              <td><strong>Sentence-BERT Semantic</strong></td>
+              <td class="text-center">0.0053</td>
+              <td class="text-center">0.0018</td>
+              <td class="text-center">0.0040</td>
+              <td class="text-center">0.0073</td>
+              <td class="text-center">0.5597</td>
+              <td class="text-center">48.98%</td>
+              <td class="text-center">35.13 ms</td>
+            </tr>
+            <tr class="table-light">
+              <td><strong>Hybrid Multi-Signal (No MMR)</strong></td>
+              <td class="text-center"><strong>0.0076</strong></td>
+              <td class="text-center"><strong>0.0035</strong></td>
+              <td class="text-center">0.0040</td>
+              <td class="text-center">0.0073</td>
+              <td class="text-center">0.5763</td>
+              <td class="text-center">50.59%</td>
+              <td class="text-center">55.44 ms</td>
+            </tr>
+            <tr class="table-danger">
+              <td><strong>Hybrid Multi-Signal + MMR ($\lambda=0.7$)</strong></td>
+              <td class="text-center">0.0074</td>
+              <td class="text-center">0.0033</td>
+              <td class="text-center">0.0040</td>
+              <td class="text-center">0.0073</td>
+              <td class="text-center"><strong>0.6953 (+20.6%)</strong></td>
+              <td class="text-center"><strong>54.16%</strong></td>
+              <td class="text-center">81.12 ms</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <small class="text-muted">
+        *Measurements recorded across 2,550 talks running locally on CPU. All 52 automated tests pass in <code>pytest</code>.
+      </small>
+    </div>
+
+    <!-- 4. Research Integrity & Collaborative Filtering Decision -->
+    <div class="card border-0 shadow-sm p-4 p-md-5 mb-4 bg-white rounded-3">
+      <h3 class="fw-bold mb-3 text-dark"><i class="bi bi-shield-check text-success me-2"></i>Research Integrity & Collaborative Filtering</h3>
+      <p class="text-secondary leading-relaxed mb-3">
+        An empirical audit of the public TED dataset confirmed that the archive supplies aggregate talk metrics (views, comments, ratings) and <strong>contains zero individual user identifiers or interaction logs</strong>.
+      </p>
+      <div class="alert alert-warning mb-0">
+        <strong>Academic Transparency:</strong> In adherence to scientific integrity, <strong>no synthetic users or fake interaction matrices were fabricated</strong>. Collaborative filtering is formally reported as <em>unsupported by available evidence</em>. The personalization demonstrated in this system is driven by explicit session interest vectors and multi-talk seed centroids.
+      </div>
+    </div>
+
+    <!-- 5. Technology Stack -->
+    <div class="card border-0 shadow-sm p-4 p-md-5 bg-white rounded-3">
+      <h3 class="fw-bold mb-3 text-dark"><i class="bi bi-stack text-danger me-2"></i>Technology Stack</h3>
+      <div class="row g-3">
+        <div class="col-sm-6 col-md-4">
+          <div class="p-3 border rounded text-center">
+            <i class="bi bi-code-slash text-danger fs-3 mb-1"></i>
+            <div class="fw-bold">Python 3.11</div>
+            <small class="text-muted">Core Language</small>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-4">
+          <div class="p-3 border rounded text-center">
+            <i class="bi bi-window text-dark fs-3 mb-1"></i>
+            <div class="fw-bold">Django 5.2</div>
+            <small class="text-muted">Web Framework</small>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-4">
+          <div class="p-3 border rounded text-center">
+            <i class="bi bi-cpu text-primary fs-3 mb-1"></i>
+            <div class="fw-bold">scikit-learn & SciPy</div>
+            <small class="text-muted">Sparse TF-IDF & Vector Space</small>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-4">
+          <div class="p-3 border rounded text-center">
+            <i class="bi bi-robot text-success fs-3 mb-1"></i>
+            <div class="fw-bold">Sentence-Transformers</div>
+            <small class="text-muted">Dense MiniLM-L6-v2</small>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-4">
+          <div class="p-3 border rounded text-center">
+            <i class="bi bi-palette text-warning fs-3 mb-1"></i>
+            <div class="fw-bold">Bootstrap 5</div>
+            <small class="text-muted">Responsive UI</small>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-4">
+          <div class="p-3 border rounded text-center">
+            <i class="bi bi-database text-info fs-3 mb-1"></i>
+            <div class="fw-bold">SQLite</div>
+            <small class="text-muted">Session Storage</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
