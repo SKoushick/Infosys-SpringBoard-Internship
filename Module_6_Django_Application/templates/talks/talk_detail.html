@@ -10,15 +10,15 @@
     <ol class="breadcrumb small">
       <li class="breadcrumb-item"><a href="{% url 'talks:home' %}" class="text-decoration-none text-muted">Home</a></li>
       <li class="breadcrumb-item"><a href="{% url 'talks:explore' %}" class="text-decoration-none text-muted">Explore</a></li>
-      <li class="breadcrumb-item active text-truncate" style="max-width: 300px;" aria-current="page">{{ talk.title }}</li>
+      <li class="breadcrumb-item active text-truncate" style="max-width: 320px;" aria-current="page">{{ talk.title }}</li>
     </ol>
   </nav>
 
   <!-- Talk Header & Details Card -->
   <div class="card border-0 shadow-sm rounded-3 mb-5 overflow-hidden bg-white">
     <!-- Talk Visual Banner -->
-    <div class="p-4 p-md-5 text-white" style="background: linear-gradient(135deg, #111111 0%, #2b0b0b 100%);">
-      <div class="row align-items-center">
+    <div class="p-4 p-md-5 text-white" style="background: linear-gradient(135deg, #0b0f19 0%, #1e1014 60%, #2b0b0b 100%);">
+      <div class="row align-items-center g-4">
         <div class="col-lg-8">
           <div class="d-flex flex-wrap gap-2 mb-3">
             <span class="badge bg-danger px-3 py-2 text-uppercase fw-bold" style="font-size: 0.75rem;">
@@ -29,11 +29,11 @@
             </span>
             {% if talk.has_transcript %}
             <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2">
-              <i class="bi bi-file-earmark-text me-1"></i> Full Transcript Verified
+              <i class="bi bi-file-earmark-text me-1"></i> Full Transcript Available
             </span>
             {% else %}
             <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2">
-              <i class="bi bi-exclamation-triangle me-1"></i> Fallback Metadata Representation
+              <i class="bi bi-exclamation-triangle me-1"></i> Metadata Representation
             </span>
             {% endif %}
           </div>
@@ -41,26 +41,46 @@
           <h1 class="fw-bold mb-3 display-6">{{ talk.title }}</h1>
           
           <div class="fs-5 mb-0 text-light opacity-90">
-            <i class="bi bi-person-fill text-danger me-1"></i> {{ talk.main_speaker }}
+            <i class="bi bi-person-circle text-danger me-1"></i> <strong>{{ talk.main_speaker }}</strong>
             {% if talk.speaker_occupation %}
             <span class="text-secondary fs-6">• {{ talk.speaker_occupation }}</span>
             {% endif %}
           </div>
         </div>
 
-        <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+        <div class="col-lg-4 text-lg-end">
           <div class="d-flex flex-column gap-2 justify-content-lg-end">
             <a href="{% url 'recommendations:form' %}?talk_id={{ talk.talk_id }}" class="btn btn-ted btn-lg shadow">
               <i class="bi bi-sparkles me-2"></i> Recommend Similar Talks
             </a>
+            
             <div class="d-flex gap-2 justify-content-lg-end">
               <a href="{% url 'talks:toggle_save' talk.talk_id %}" class="btn btn-outline-light btn-save-talk">
                 <i class="bi {% if is_saved %}bi-bookmark-fill text-danger{% else %}bi-bookmark{% endif %} me-1"></i>
-                <span class="btn-save-text">{% if is_saved %}Saved to Profile{% else %}Save Talk{% endif %}</span>
+                <span class="btn-save-text">{% if is_saved %}Saved in Profile{% else %}Save Talk{% endif %}</span>
               </a>
+
+              {% if user.is_authenticated and user_collections %}
+              <div class="dropdown">
+                <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                  <i class="bi bi-folder-plus me-1"></i> Collect
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow">
+                  <li class="dropdown-header small text-muted">Add to Collection:</li>
+                  {% for col in user_collections %}
+                  <li>
+                    <a class="dropdown-item small" href="#" onclick="addToCollection({{ col.id }}, {{ talk.talk_id }}, this); return false;">
+                      <i class="bi bi-folder me-2"></i>{{ col.title }}
+                    </a>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif %}
+
               {% if talk.url %}
               <a href="{{ talk.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light">
-                <i class="bi bi-box-arrow-up-right me-1"></i> Watch on TED.com
+                <i class="bi bi-box-arrow-up-right me-1"></i> Watch
               </a>
               {% endif %}
             </div>
@@ -85,20 +105,20 @@
           <strong class="fs-5 text-dark">#{{ talk.talk_id }}</strong>
         </div>
         <div class="col-md-3 col-6">
-          <small class="text-muted d-block">Tags Count</small>
+          <small class="text-muted d-block">Taxonomy Tags</small>
           <strong class="fs-5 text-dark"><i class="bi bi-tags text-success me-1"></i>{{ talk.tags|length }} Topics</strong>
         </div>
       </div>
     </div>
 
-    <!-- Talk Body -->
+    <!-- Talk Body & Abstract -->
     <div class="p-4 p-md-5">
-      <h5 class="fw-bold mb-3">About this TED Presentation</h5>
+      <h5 class="fw-bold mb-3">About this Presentation</h5>
       <p class="fs-6 text-secondary leading-relaxed mb-4" style="line-height: 1.8;">
         {{ talk.description }}
       </p>
 
-      <h6 class="fw-bold text-muted text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">Topical Subjects & Themes:</h6>
+      <h6 class="fw-bold text-muted text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">Thematic Concepts & Subject Tags:</h6>
       <div class="d-flex flex-wrap gap-1 mb-4">
         {% for tag in talk.tags %}
         <a href="{% url 'talks:explore' %}?tag={{ tag|urlencode }}" class="tag-pill px-3 py-1">
@@ -106,6 +126,36 @@
         </a>
         {% endfor %}
       </div>
+
+      <!-- Interactive Transcript Section -->
+      {% if transcript %}
+      <div class="transcript-stage mt-4">
+        <div class="transcript-header-bar">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-danger rounded-circle p-1"><i class="bi bi-chat-quote-fill"></i></span>
+            <strong class="text-dark small">Complete Presentation Transcript</strong>
+            <span class="text-muted small">({{ transcript|wordcount }} words • ~{{ talk.duration_minutes }} min read)</span>
+          </div>
+
+          <!-- Transcript In-Text Search Box -->
+          <div class="d-flex align-items-center gap-2">
+            <div class="input-group input-group-sm" style="max-width: 250px;">
+              <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+              <input type="text" id="transcriptSearchInput" class="form-control border-start-0" placeholder="Search transcript text...">
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#transcriptCollapse" aria-expanded="true">
+              Toggle
+            </button>
+          </div>
+        </div>
+
+        <div class="collapse show" id="transcriptCollapse">
+          <div class="transcript-viewport" id="transcriptViewport">
+            <p id="transcriptContent">{{ transcript }}</p>
+          </div>
+        </div>
+      </div>
+      {% endif %}
     </div>
   </div>
 
@@ -114,11 +164,11 @@
   <div class="mb-5">
     <div class="d-flex justify-content-between align-items-end mb-4">
       <div>
-        <h6 class="text-danger text-uppercase fw-bold mb-1" style="font-size: 0.8rem; letter-spacing: 1px;">Instant ML Preview</h6>
+        <h6 class="text-danger text-uppercase fw-bold mb-1" style="font-size: 0.8rem; letter-spacing: 1px;">Neural-Lexical Recommender</h6>
         <h3 class="fw-bold mb-0">Recommended Companion Talks</h3>
       </div>
       <a href="{% url 'recommendations:form' %}?talk_id={{ talk.talk_id }}" class="btn btn-outline-ted">
-        Customize Model & Top-K <i class="bi bi-arrow-right ms-1"></i>
+        Customize Signals & Top-K <i class="bi bi-arrow-right ms-1"></i>
       </a>
     </div>
 
@@ -173,4 +223,67 @@
   {% endif %}
 
 </div>
+
+<script>
+// Transcript keyword highlighter
+const transcriptInput = document.getElementById('transcriptSearchInput');
+const transcriptContent = document.getElementById('transcriptContent');
+let originalTranscript = transcriptContent ? transcriptContent.innerText : '';
+
+if (transcriptInput && transcriptContent) {
+  transcriptInput.addEventListener('input', function() {
+    const q = this.value.trim();
+    if (!q) {
+      transcriptContent.innerText = originalTranscript;
+      return;
+    }
+    const regex = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const highlighted = originalTranscript.replace(regex, '<mark class="transcript-search-match">$1</mark>');
+    transcriptContent.innerHTML = highlighted;
+
+    // Scroll to first match
+    const firstMatch = transcriptContent.querySelector('.transcript-search-match');
+    if (firstMatch) {
+      firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
+}
+
+// Add to collection AJAX
+function addToCollection(collectionId, talkId, element) {
+  const formData = new FormData();
+  formData.append('collection_id', collectionId);
+  formData.append('talk_id', talkId);
+
+  fetch('/api/collections/add/', {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken')
+    }
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.status === 'ok') {
+      element.innerHTML = '<i class="bi bi-check2 text-success me-2"></i>' + element.innerText.trim();
+    }
+  })
+  .catch(e => console.error(e));
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+</script>
 {% endblock %}

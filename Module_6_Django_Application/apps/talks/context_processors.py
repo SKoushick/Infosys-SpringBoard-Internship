@@ -10,7 +10,11 @@ def tedmind_global_context(request):
     saved_count = 0
     saved_talk_ids = set()
 
-    if request.session.session_key:
+    if getattr(request, "user", None) and request.user.is_authenticated:
+        saved_qs = SavedTalk.objects.filter(user=request.user)
+        saved_count = saved_qs.count()
+        saved_talk_ids = set(saved_qs.values_list("talk_id", flat=True))
+    elif request.session.session_key:
         s_key = request.session.session_key
         saved_qs = SavedTalk.objects.filter(session_key=s_key)
         saved_count = saved_qs.count()

@@ -124,6 +124,21 @@ class RecommenderService:
         """Retrieve pre-formatted talk metadata by talk ID."""
         return self.id_to_talk.get(int(talk_id))
 
+    def get_talk_transcript(self, talk_id: int) -> Optional[str]:
+        """Retrieve cleaned transcript text for a given talk if available."""
+        if self.df is None or self.df.empty:
+            return None
+        matches = self.df[self.df["talk_id"] == int(talk_id)]
+        if matches.empty:
+            return None
+        row = matches.iloc[0]
+        t = row.get("transcript_clean", "")
+        if not t or pd.isna(t):
+            t = row.get("transcript", "")
+        if pd.notna(t) and str(t).strip():
+            return str(t).strip()
+        return None
+
     def get_all_talk_titles(self) -> List[Dict[str, Any]]:
         """Returns minimal talk ID and title list for fast searchable dropdowns."""
         return [

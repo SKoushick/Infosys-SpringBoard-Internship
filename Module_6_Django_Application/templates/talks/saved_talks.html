@@ -1,22 +1,52 @@
 {% extends "base.html" %}
 
-{% block title %}My Saved Talks Profile — TEDMind{% endblock %}
+{% block title %}My Saved Talks & Collections — TEDMind{% endblock %}
 
 {% block content %}
 <div class="container py-4">
   <div class="row align-items-center mb-4">
-    <div class="col-md-8">
-      <h2 class="fw-bold mb-1"><i class="bi bi-bookmark-heart text-danger me-2"></i>My Saved Session Profile</h2>
-      <p class="text-muted small mb-0">Talks you have saved during this session. Use them to generate multi-talk personalized recommendations.</p>
+    <div class="col-md-7">
+      <h2 class="fw-bold mb-1"><i class="bi bi-bookmark-heart text-danger me-2"></i>My Saved Talks & Collections</h2>
+      <p class="text-muted small mb-0">
+        {% if request.user.is_authenticated %}
+          Saved to your permanent profile ({{ request.user.username }}).
+        {% else %}
+          Talks saved during this session. <a href="{% url 'accounts:login' %}" class="text-danger fw-semibold">Sign in</a> to save permanently across devices.
+        {% endif %}
+      </p>
     </div>
-    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+    <div class="col-md-5 text-md-end mt-3 mt-md-0 d-flex justify-content-md-end gap-2">
+      {% if request.user.is_authenticated %}
+        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#newCollectionModal">
+          <i class="bi bi-folder-plus me-1"></i>New Collection
+        </button>
+      {% endif %}
       {% if saved_talks %}
-      <a href="{% url 'recommendations:results' %}?use_saved_profile=1&method=hybrid&top_k=10&apply_mmr=1" class="btn btn-ted shadow">
+      <a href="{% url 'recommendations:results' %}?use_saved_profile=1&method=hybrid&top_k=10&apply_mmr=1" class="btn btn-ted btn-sm shadow-sm">
         <i class="bi bi-stars me-1"></i> Personalize from Saved ({{ saved_count }})
       </a>
       {% endif %}
     </div>
   </div>
+
+  <!-- User Collections Bar (if user is authenticated and has collections) -->
+  {% if request.user.is_authenticated and collections %}
+  <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-light">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+      <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-collection text-danger me-2"></i>Your Curated Collections</h6>
+      <span class="small text-muted">{{ collections.count }} collection{{ collections.count|pluralize }}</span>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      {% for col in collections %}
+        <a href="{% url 'talks:collection_detail' col.id %}" class="btn btn-sm btn-white border rounded-pill shadow-xs py-1 px-3 d-inline-flex align-items-center">
+          <i class="bi bi-folder2-open text-warning me-2"></i>
+          <span class="fw-semibold text-dark">{{ col.title }}</span>
+          <span class="badge bg-secondary ms-2 rounded-pill">{{ col.item_count }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 
   {% if saved_talks %}
   <div class="row g-4">
@@ -62,11 +92,11 @@
   </div>
 
   {% else %}
-  <div class="card border-0 shadow-sm p-5 text-center my-4 bg-white">
+  <div class="card border-0 shadow-sm p-5 text-center my-4 bg-white rounded-4">
     <div class="text-muted mb-3"><i class="bi bi-bookmark-dash fs-1"></i></div>
     <h4 class="fw-bold">No Talks Saved Yet</h4>
     <p class="text-muted mx-auto mb-4" style="max-width: 480px;">
-      As you explore talks, click the bookmark icon to save them to your session profile. You can then generate personalized recommendations based on your cumulative interests!
+      As you explore talks, click the bookmark icon to save them to your profile. You can then generate personalized recommendations based on your cumulative interests!
     </p>
     <div>
       <a href="{% url 'talks:explore' %}" class="btn btn-ted px-4">
@@ -76,4 +106,35 @@
   </div>
   {% endif %}
 </div>
+
+<!-- Modal: New Collection -->
+{% if request.user.is_authenticated %}
+<div class="modal fade" id="newCollectionModal" tabindex="-1" aria-labelledby="newCollectionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <form method="post" action="{% url 'talks:create_collection' %}">
+        {% csrf_token %}
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold" id="newCollectionModalLabel"><i class="bi bi-folder-plus text-danger me-2"></i>Create New Collection</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body py-4">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-muted">Collection Title</label>
+            <input type="text" name="title" class="form-control" placeholder="e.g. AI & Ethics, Creative Thinking" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-muted">Description (Optional)</label>
+            <textarea name="description" class="form-control" rows="2" placeholder="What is the focus of this collection?"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-sm btn-light rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-danger rounded-pill px-4 fw-semibold">Create Collection</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}

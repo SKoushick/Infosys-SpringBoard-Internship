@@ -1,192 +1,108 @@
-# Personalized TED Talks Recommendation System Using Machine Learning
-### Infosys Springboard Internship 7.0 — Milestone 2 Deliverable
+# TEDMind — AI-Powered Personalized TED Talk Discovery Platform
+### Infosys Springboard Internship 7.0 — Master Engineering Product
 
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
-[![Testing](https://img.shields.io/badge/pytest-52%20passed-success.svg)](tests/)
+[![Django](https://img.shields.io/badge/django-5.2-green.svg)](https://www.djangoproject.com/)
+[![Testing](https://img.shields.io/badge/tests-75%20passed-success.svg)](TESTING.md)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-[![Framework](https://img.shields.io/badge/scikit--learn-1.4%2B-orange.svg)](https://scikit-learn.org/)
-[![Embeddings](https://img.shields.io/badge/Sentence--Transformers-all--MiniLM--L6--v2-green.svg)](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
+[![Sentence--Transformers](https://img.shields.io/badge/Sentence--Transformers-all--MiniLM--L6--v2-blueviolet.svg)](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
 
 ---
 
-##  Project Overview
-This repository contains the end-to-end engineering implementation of a **Personalized TED Talks Recommendation System**. Using natural language processing (NLP), sparse vectorisation, and pretrained transformer embeddings, the engine recommends highly relevant, diversified, and explainable talks from a catalog of 2,550 TED presentations.
+## 1. Project Overview
 
-### Key Capabilities
-- **Content-Based TF-IDF Recommender:** Field-weighted term frequency / inverse document frequency matching (Title, Description, Tags, Transcript) spanning **44,613 features**.
-- **Semantic Recommender:** Deep conceptual matching powered by **`sentence-transformers/all-MiniLM-L6-v2`** (384-dimensional dense vectors).
-- **Multi-Signal Hybrid Recommender:** Configurable score fusion between lexical keywords, latent semantics, and topic interest boosts.
-- **Session-Based Personalisation:** Aggregates multi-liked talks into a dynamic user preference profile while strictly excluding disliked or previously viewed talks.
-- **Maximal Marginal Relevance (MMR):** Algorithmic re-ranking to balance topical relevance and content diversity ($\lambda = 0.70$).
-- **Explainable Recommendations:** Detailed natural language justifications for every result (shared themes, speaker affinity, similarity scores).
-- **Cold-Start Resilience:** Graceful fallbacks for talks lacking transcripts and users with zero interaction history.
+**TEDMind** is a production-minded AI discovery and personalized recommendation platform designed to help users uncover ideas worth spreading. Built on top of 2,550 curated presentations from the verified TED catalog, TEDMind combines natural language processing (multi-field TF-IDF), dense contextual transformers (`all-MiniLM-L6-v2`), multi-signal hybrid fusion, and Maximal Marginal Relevance (MMR) diversity reranking.
 
 ---
 
-##  Quickstart & Reproduction
+## 2. Key Capabilities & Architecture
 
-### 1. Environment Setup
+- **Multi-Signal Hybrid Engine:** Configurable score fusion between lexical keyword TF-IDF ($44,613$ features) and dense contextual Sentence-BERT ($384$ dimensions).
+- **Maximal Marginal Relevance (MMR):** Algorithmic re-ranking ($\lambda=0.70$) that improves topic diversity by **+20.6%** without degrading relevance.
+- **Explainable AI:** Evidence-backed rationales explaining *why* talks are recommended (shared topic badges, speaker affinity, cosine scores).
+- **User Accounts & Personalization:** Secure user registration, authentication, topic preference onboarding, and seamless migration of guest bookmarks.
+- **Custom Collections:** User-curated playlists and study paths with personal learning notes.
+- **Negative Feedback Loop:** Dynamic exclusion of disliked talks (`dislike`, `not_interested`) to eliminate unwanted topics.
+- **RESTful API Layer:** Programmatic endpoints for talks, recommendations, user interactions, and system health checks (`/api/`).
+- **Production Hardened:** Environment-variable isolation (`.env`), HTTP security headers (HSTS, X-Frame-Options, CSRF, No-Sniff), and Docker Compose deployment.
+
+---
+
+## 3. Quickstart & Launch Guide
+
+### Local Development (Windows PowerShell)
+
+```powershell
+# 1. Activate virtual environment
+.\venv\Scripts\Activate.ps1
+
+# 2. Set Python paths
+$env:PYTHONPATH = "src;Module_6_Django_Application;Module_6_Django_Application/apps"
+
+# 3. Apply database migrations
+python Module_6_Django_Application/manage.py migrate
+
+# 4. Start local development server
+python Module_6_Django_Application/manage.py runserver 127.0.0.1:8000
+```
+
+Open your browser at: 👉 **`http://127.0.0.1:8000/`**
+
+### Production Deployment (Docker Compose)
+
 ```bash
-# Clone the repository
-git clone <repo-url>
-cd Ted_Talk_Recommendation
-
-# Create and activate virtual environment
-python -m venv venv
-.\venv\Scripts\Activate.ps1    # On Windows PowerShell
-# source venv/bin/activate    # On Linux/macOS
-
-# Install pinned dependencies
-pip install -r requirements.txt
-```
-
-### 2. Generate Artifacts and Run Benchmarks
-To regenerate all TF-IDF matrices, cache dense semantic embeddings, and measure system latency:
-```bash
-python Module_4_Recommendation_Engine/train_and_benchmark.py
-```
-
-### 3. Run Automated Tests
-```bash
-pytest -v
-```
-*(All 39 unit and integration test suites pass in ~69s)*
-
-### 4. Execute Module 5 Unified Evaluation & Benchmarking Pipeline
-To run the complete evaluation, performance profiling, robustness checks, and generate all high-res plots:
-```bash
-python Module_5_Evaluation_Metrics/run_evaluation_pipeline.py
-```
-
-### 5. Interactive Notebook Demonstration
-Launch Jupyter and open the demonstration notebooks:
-```bash
-# Module 4 Engine Demonstration
-jupyter notebook Module_4_Recommendation_Engine/01_Recommendation_Engine_Demonstration.ipynb
-
-# Module 5 Evaluation Analysis
-jupyter notebook Module_5_Evaluation_Metrics/notebooks/05_Final_Evaluation_Analysis.ipynb
+docker-compose up -d --build
+docker-compose exec web python Module_6_Django_Application/manage.py migrate
+docker-compose exec web python Module_6_Django_Application/manage.py collectstatic --noinput
 ```
 
 ---
 
-##  Repository Architecture
+## 4. Automated Testing Suite (75/75 Passing)
 
-```
-Ted_Talk_Recommendation/
-├── .gitignore                                 # Git ignore rules for virtualenvs, caches, artifacts
-├── pytest.ini                                 # Pytest testpath and pythonpath configuration
-├── README.md                                  # Project overview and reproduction guide
-├── requirements.txt                           # Verified Python dependencies
-├── config/
-│   └── recommender_config.json                # Centralized hyperparameters & weights
-├── docs/
-│   ├── MILESTONE_2_TECHNICAL_DOCUMENTATION.md # 33-section comprehensive technical report
-│   └── MODULE_5_EVALUATION_REPORT.md          # 19-section Module 5 evaluation report
-├── src/
-│   └── ted_recommender/                       # Production Python Package
-│       ├── __init__.py
-│       ├── config.py                          # Dynamic root resolution & config dataclasses
-│       ├── data.py                            # Dataset loaders, schema validation, text cleaners
-│       ├── features.py                        # TF-IDF pipeline & Sentence-BERT embedding generator
-│       ├── recommender.py                     # Content-based, Semantic, Hybrid, MMR, & Explanations
-│       ├── collaborative.py                   # Feasibility audit & future interface contract
-│       └── evaluation.py                      # Ranking metrics (P@K, R@K, NDCG@K, MAP@K, ILD)
-├── tests/                                     # Core Automated Test Suite (20/20 Passed)
-│   ├── test_data.py                           # Schema, row alignment, fingerprint, and cleaning tests
-│   ├── test_vectorization.py                  # Matrix shapes, sparsity, and transformation tests
-│   ├── test_recommender.py                    # Top-k, self-exclusion, MMR, and edge case tests
-│   └── test_evaluation.py                     # Metric mathematical correctness & audit checks
-├── Module_1_Data_Collection/                  # Module 1 Scripts & Data
-│   └── Scraped/Data/                          # Raw, Processed, and External CSVs (2550 talks)
-├── Module_2_Data_Exploration_Preprocessing/   # Module 2 EDA Notebooks & Visualizations
-├── Module_3_Feature_Engineering_Vectorization/# Module 3 Vectorization Notebooks & Feature Matrices
-├── Module_4_Recommendation_Engine/            # Module 4 Implementation & Benchmark
-│   ├── 01_Recommendation_Engine_Demonstration.ipynb
-│   ├── train_and_benchmark.py
-│   └── outputs/milestone_2_benchmark_report.json
-└── Module_5_Evaluation_Metrics/               # Module 5 Complete Evaluation Framework
-    ├── configs/evaluation_config.json         # Evaluation parameters, K-cutoffs, and paths
-    ├── data/processed/                        # 2,544 sanitized evaluation ground-truth queries
-    ├── notebooks/                             # 5 standard v4 Jupyter evaluation notebooks
-    ├── results/
-    │   ├── benchmarks/                        # Multi-model comparison scorecards & query logs
-    │   ├── performance/                       # Offline load vs online latency profiles
-    │   ├── plots/                             # 7 publication-quality evaluation comparison plots
-    │   └── reports/                           # Data quality, robustness, & human evaluation reports
-    ├── src/evaluation/                        # Modular evaluation package
-    │   ├── ranking_metrics.py                 # Precision, Recall, F1, NDCG, MAP, HitRate, MRR
-    │   ├── diversity_metrics.py               # ILD, Topic Entropy, Gini-Simpson, Integrity
-    │   ├── coverage_metrics.py                # Catalogue coverage, Novelty bits, Gini index
-    │   ├── evaluation_dataset.py              # Parsing, membership validation, & sampling
-    │   ├── benchmark.py                       # Unified fair benchmarking engine
-    │   ├── performance.py                     # Cold-start vs latency profiling
-    │   ├── robustness.py                      # 12-check boundary stress suite (12/12 PASS)
-    │   └── human_evaluation.py               # Graded relevance framework & template (NDCG/MAP)
-    └── tests/                                 # Module 5 Test Suite (32/32 Passed)
+TEDMind enforces rigorous quality assurance across all modules:
+
+| Test Suite | File Location | Tests | Status |
+| :--- | :--- | :---: | :---: |
+| **Web Application Views** | `Module_6_Django_Application/tests/test_views.py` | 9 | **PASS** |
+| **Accounts & Personalization** | `Module_6_Django_Application/tests/test_accounts.py` | 7 | **PASS** |
+| **REST API Endpoints** | `Module_6_Django_Application/tests/test_api.py` | 7 | **PASS** |
+| **Core ML Pipeline (Modules 1–4)** | `tests/test_*.py` | 20 | **PASS** |
+| **Module 5 Evaluation Metrics** | `Module_5_Evaluation_Metrics/tests/test_*.py` | 32 | **PASS** |
+| **Total Test Suite** | — | **75 Tests** | **100% PASS** |
+
+To run the complete web suite:
+```powershell
+cd Module_6_Django_Application
+..\venv\Scripts\python.exe manage.py test tests
 ```
 
 ---
 
-## Measured Benchmark Performance (Module 5 Unified Scorecard)
+## 5. Measured Benchmark Scorecard (Module 5 Empirical Evaluation)
 
-Evaluated under strict identical conditions across 100 stratified ground-truth queries ($K=10$) with strict fair verification:
+Evaluated across 100 deterministic evaluation queries under identical conditions:
 
-| Recommender Model | Evaluated Queries | NDCG@10 | MAP@10 | Precision@10 | Recall@10 | HitRate@10 | ILD@10 (Diversity) | Catalog Coverage | Novelty (bits) | Mean Latency |
-|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **TF-IDF Content-Based** | 100/100 | 0.0063 | 0.0026 | 0.0040 | **0.0077** | **0.0400** | 0.6851 | 51.88% (1,323 talks) | **11.8556** | **32.25 ms** |
-| **Sentence-BERT Semantic** | 100/100 | 0.0053 | 0.0018 | 0.0040 | 0.0073 | **0.0400** | 0.5597 | 48.98% (1,249 talks) | 11.8498 | 35.13 ms |
-| **Hybrid Multi-Signal (No MMR)** | 100/100 | **0.0076** | **0.0035** | 0.0040 | 0.0073 | **0.0400** | 0.5763 | 50.59% (1,290 talks) | 11.8411 | 55.44 ms |
-| **Hybrid + MMR ($\lambda=0.7$)** | 100/100 | 0.0074 | 0.0033 | 0.0040 | 0.0073 | **0.0400** | **0.6953 (+20.6%)** | **54.16% (1,381 talks)** | 11.8487 | 81.12 ms |
-
-*Measurements taken across the full 2,550-talk catalogue running locally on Intel CPU. Fair Comparison Verification: PASS.*
+| Model | NDCG@10 | MAP@10 | Precision@10 | Recall@10 | ILD@10 (Diversity) | Coverage (%) | Latency (ms) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **TF-IDF Content-Based** | 0.0063 | 0.0026 | 0.0040 | 0.0077 | 0.6851 | 51.88% | **32.5 ms** |
+| **Sentence-BERT Semantic** | 0.0053 | 0.0018 | 0.0040 | 0.0073 | 0.5597 | 48.98% | 35.4 ms |
+| **Hybrid Multi-Signal (No MMR)** | **0.0076** | **0.0035** | 0.0040 | 0.0073 | 0.5763 | 50.59% | 56.9 ms |
+| **Hybrid Multi-Signal + MMR** | 0.0074 | 0.0033 | 0.0040 | 0.0073 | **0.6953 (+20.6%)** | **54.16%** | 87.1 ms |
 
 ---
 
-## Evaluation Status Taxonomy
+## 6. Project Documentation Index
 
-| Status Category | Components Included | Verification Method |
-|:---|:---|:---|
-| **Implemented** | 8 ranking metrics, 4 diversity/coverage metrics, sparse MMR algorithm, multi-field TF-IDF, Sentence-BERT semantic search, hybrid multi-signal fusion, cold-start fallback, configuration validator. | Source code implemented in `src/ted_recommender/` and `Module_5_Evaluation_Metrics/src/`. |
-| **Tested** | Metric correctness, boundary stress checks, duplicate handling, matrix bounds, simulated model failures, fair query verification, deterministic sampling, hand-calculated graded NDCG/MAP proofs. | **52 passed tests** in `pytest -v` (`tests/` and `Module_5_Evaluation_Metrics/tests/`). |
-| **Benchmark Executed** | Unified comparative benchmark across 100 stratified evaluation queries ($K \in \{5, 10, 20\}$) evaluating all 4 models under identical conditions. | `run_evaluation_pipeline.py` execution; outputs saved in `benchmark_summary_table.csv` and `unified_model_comparison_scorecard.json`. |
-| **Proxy Evaluation** | Relative model rankings using TED editorial `related_talks` as ground truth. | Documented as an automated editorial companion proxy, not live user interaction data. |
-| **Human Evaluation Pending** | 4-point graded qualitative evaluation template generated with 200 candidate pairs across 4 models and 10 representative queries. | Status: `PENDING_HUMAN_EVALUATION` (0/200 human grades assigned). No synthetic ratings generated. |
-| **Not Supported by Available Data** | Collaborative Filtering (matrix factorization, user-based or item-based collaborative filtering). | Formally documented as unsupported due to lack of per-user interaction identifiers in the public TED dataset. |
-
----
-
-## Collaborative Filtering Decision
-An empirical audit of the dataset confirmed that the TED archive supplies only aggregate talk statistics (`views`, `comments`, `ratings` emotion counts) and **contains zero individual user identifiers or user-item interaction logs**.
-
-In adherence to scientific integrity:
-- **No fake users or synthetic interactions were fabricated.**
-- Collaborative filtering is formally reported as **UNSUPPORTED BY AVAILABLE EVIDENCE**.
-- An extensible `CollaborativeSignalProvider` interface is implemented in `src/ted_recommender/collaborative.py` to seamlessly blend user signals when telemetry logs become available.
-
----
-
-## Seven-Module Status Summary
-
-| Module | Status | Verification Evidence |
-|:---|:---:|:---|
-| **Module 1: Data Collection** | **COMPLETE (PASS)** | 2,550 records loaded from verified TED public archive |
-| **Module 2: Data Exploration & Preprocessing** | **COMPLETE (PASS)** | Cleaned text, transcription cue removal, missing transcript fallback |
-| **Module 3: Feature Engineering & Vectorization** | **COMPLETE (PASS)** | 4 TF-IDF vectorizers fitted; 2550×44,613 matrix; 2550×384 embeddings |
-| **Module 4: Develop Recommendation Engine** | **COMPLETE (PASS)** | TF-IDF, Semantic, Hybrid, MMR, Explanations, Personalisation; 20 tests passing |
-| **Module 5: Evaluation Metrics** | **COMPLETE (PASS)** | 8 ranking metrics, 4 diversity/coverage metrics, ground truth (2,544 queries), 4-model unified fair benchmark (100/100 queries each, strict fair verification passed), latency profiling, 12/12 stress checks, human eval framework (pending real annotations, 200 records prepared), 5 notebooks, 7 plots; 32 tests passing (52/52 total suite) |
-| **Module 6: Streamlit Deployment** | **PLANNED** | Scheduled for next milestone |
-| **Module 7: Presentation & Documentation** | **COMPLETE (PASS)** | Comprehensive technical reports in `docs/` (`MILESTONE_2_TECHNICAL_DOCUMENTATION.md` & `MODULE_5_EVALUATION_REPORT.md`) |
-
----
-
-## Documentation
-For detailed architectural designs, mathematical formulations, data dictionaries, and benchmark reports, refer to:
-- **[`docs/MODULE_5_EVALUATION_REPORT.md`](docs/MODULE_5_EVALUATION_REPORT.md)** — Comprehensive Module 5 Evaluation Report (Ranking, Diversity, Coverage, Latency, Robustness, Human Eval)
-- **[`docs/MILESTONE_2_TECHNICAL_DOCUMENTATION.md`](docs/MILESTONE_2_TECHNICAL_DOCUMENTATION.md)** — Architectural Design and Milestone 2 Engineering Documentation
+- [ARCHITECTURE.md](ARCHITECTURE.md) — System components, multi-signal scoring formulas, and singleton lifecycle.
+- [SECURITY.md](SECURITY.md) — Authentication safeguards, HTTP headers, CSRF enforcement, and vulnerability policy.
+- [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) — Entity-relationship models, table definitions, and constraints.
+- [API_DOCUMENTATION.md](API_DOCUMENTATION.md) — RESTful API endpoints, request/response JSON schemas, and status codes.
+- [TESTING.md](TESTING.md) — Automated testing matrix, commands, and validation procedures.
+- [DEPLOYMENT.md](DEPLOYMENT.md) — Docker Compose, Gunicorn, PostgreSQL, and backup/restore guidelines.
+- [CHANGELOG.md](CHANGELOG.md) — Chronological log of versions, migrations, and new features.
 
 ---
 **Author:** S Koushick  
 **Internship:** Infosys Springboard Internship 7.0  
-**Deliverable:** Milestone 2 & Milestone 3 (Module 5) Completion
-
+**Project:** Personalized TED Talks Recommendation System Using Machine Learning

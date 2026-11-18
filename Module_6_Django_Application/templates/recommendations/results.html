@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Recommendation Results — TEDMind{% endblock %}
+{% block title %}Recommendations ({{ method_display }}) — TEDMind{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -9,8 +9,8 @@
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb small">
       <li class="breadcrumb-item"><a href="{% url 'talks:home' %}" class="text-decoration-none text-muted">Home</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'recommendations:form' %}" class="text-decoration-none text-muted">Recommendations</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Results</li>
+      <li class="breadcrumb-item"><a href="{% url 'recommendations:form' %}" class="text-decoration-none text-muted">Studio</a></li>
+      <li class="breadcrumb-item active fw-semibold" aria-current="page">Results</li>
     </ol>
   </nav>
 
@@ -20,12 +20,12 @@
       <div class="row align-items-center g-3">
         <div class="col-lg-8">
           <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-            <span class="badge bg-danger text-uppercase px-3 py-1">
+            <span class="badge bg-danger text-uppercase px-3 py-1 fw-bold">
               <i class="bi bi-cpu me-1"></i> {{ method_display }}
             </span>
             {% if apply_mmr %}
             <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1">
-              <i class="bi bi-shuffle me-1"></i> MMR Diversity Active ($\lambda=0.70$)
+              <i class="bi bi-shuffle me-1"></i> MMR Diversity Active (&lambda;=0.70)
             </span>
             {% else %}
             <span class="badge bg-secondary-subtle text-dark border px-3 py-1">
@@ -33,7 +33,7 @@
             </span>
             {% endif %}
             <span class="badge bg-dark text-white px-3 py-1">
-              <i class="bi bi-clock-history me-1"></i> {{ latency_ms }} ms
+              <i class="bi bi-lightning-charge me-1"></i> {{ latency_ms }} ms
             </span>
           </div>
 
@@ -42,30 +42,30 @@
           <!-- Input Signals Summary -->
           <div class="text-secondary small">
             {% if seed_talk %}
-            <span class="me-3">
+            <span class="me-3 d-inline-block my-1">
               <i class="bi bi-play-circle-fill text-danger me-1"></i>
               <strong>Seed Talk:</strong> "{{ seed_talk.title }}" ({{ seed_talk.main_speaker }})
             </span>
             {% endif %}
 
             {% if query_text %}
-            <span class="me-3">
+            <span class="me-3 d-inline-block my-1">
               <i class="bi bi-chat-left-quote-fill text-primary me-1"></i>
-              <strong>Prompt:</strong> "{{ query_text|truncatechars:70 }}"
+              <strong>Curiosity Prompt:</strong> "{{ query_text|truncatechars:70 }}"
             </span>
             {% endif %}
 
             {% if selected_tags %}
-            <span class="me-3">
+            <span class="me-3 d-inline-block my-1">
               <i class="bi bi-tags-fill text-success me-1"></i>
-              <strong>Topics:</strong> {% for t in selected_tags %}#{{ t }}{% if not forloop.last %}, {% endif %}{% endfor %}
+              <strong>Thematic Bias:</strong> {% for t in selected_tags %}<span class="badge bg-white text-dark border me-1">#{{ t }}</span>{% endfor %}
             </span>
             {% endif %}
 
             {% if used_saved_profile %}
-            <span>
+            <span class="d-inline-block my-1">
               <i class="bi bi-bookmark-heart-fill text-danger me-1"></i>
-              <strong>Session Profile:</strong> Based on {{ liked_talk_ids_count }} saved talks
+              <strong>Session Bias:</strong> Grounded in {{ liked_talk_ids_count }} saved library talks
             </span>
             {% endif %}
           </div>
@@ -73,7 +73,7 @@
 
         <div class="col-lg-4 text-lg-end">
           <a href="{% url 'recommendations:form' %}{% if seed_talk %}?talk_id={{ seed_talk.talk_id }}{% endif %}" class="btn btn-outline-dark">
-            <i class="bi bi-sliders me-1"></i> Adjust Inputs / Model
+            <i class="bi bi-sliders me-1"></i> Adjust Signals & Model
           </a>
         </div>
       </div>
@@ -85,30 +85,40 @@
   <div class="row g-4 mb-5">
     {% for rec in recommendations %}
     <div class="col-12">
-      <div class="card border-0 shadow-sm rounded-3 bg-white p-3 p-md-4">
+      <div class="card border-0 shadow-sm rounded-3 bg-white p-3 p-md-4 card-recommendation-item">
         <div class="row g-3">
-          <!-- Rank & Match Score Column -->
-          <div class="col-md-2 col-12 d-flex flex-column align-items-md-center justify-content-center text-center border-end-md pb-3 pb-md-0">
-            <span class="badge rounded-circle bg-dark text-white fs-5 mb-2 d-none d-md-inline-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+          <!-- Rank & Match Visual Progress Column -->
+          <div class="col-lg-2 col-md-3 col-12 d-flex flex-column align-items-center justify-content-center text-center border-end-md pb-3 pb-md-0">
+            <span class="badge rounded-circle bg-dark text-white fs-5 mb-2 d-none d-md-inline-flex align-items-center justify-content-center shadow-xs" style="width: 44px; height: 44px;">
               {{ forloop.counter }}
             </span>
-            <div class="score-pill shadow-sm mb-1">
-              <i class="bi bi-bullseye text-danger"></i> {{ rec.match_pct }}% Match
+            
+            <div class="w-100 px-2 text-center">
+              <span class="fw-bold fs-5 text-dark">{{ rec.match_pct }}%</span>
+              <span class="text-muted small d-block">Match Quality</span>
+              
+              <!-- Match Bar Fill -->
+              <div class="match-bar-track">
+                <div class="match-bar-fill {% if rec.match_pct >= 70 %}match-fill-high{% elif rec.match_pct >= 45 %}match-fill-mid{% else %}match-fill-low{% endif %}" style="width: {{ rec.match_pct }}%;"></div>
+              </div>
             </div>
-            <small class="text-muted" style="font-size: 0.72rem;">Score: {{ rec.score }}</small>
-            <small class="text-muted d-block mt-2"><i class="bi bi-clock me-1"></i>{{ rec.duration_minutes }}m</small>
-            <small class="text-muted"><i class="bi bi-eye me-1"></i>{{ rec.views_formatted }}</small>
+
+            <div class="mt-3 text-muted small" style="font-size: 0.72rem;">
+              <div>Raw Score: <span class="fw-semibold text-dark">{{ rec.score }}</span></div>
+              <div class="mt-1"><i class="bi bi-clock me-1"></i>{{ rec.duration_minutes }} min</div>
+              <div><i class="bi bi-eye me-1"></i>{{ rec.views_formatted }}</div>
+            </div>
           </div>
 
           <!-- Main Content Column -->
-          <div class="col-md-7 col-12">
+          <div class="col-lg-7 col-md-6 col-12">
             <div class="d-flex align-items-center gap-2 mb-1">
               <span class="badge bg-light text-dark border">{{ rec.event }}</span>
               {% if rec.published_year %}<span class="text-muted small">{{ rec.published_year }}</span>{% endif %}
             </div>
 
             <h4 class="fw-bold mb-1">
-              <a href="{% url 'talks:detail' rec.talk_id %}" class="text-dark text-decoration-none">
+              <a href="{% url 'talks:detail' rec.talk_id %}" class="text-dark text-decoration-none hover-danger">
                 {{ rec.title }}
               </a>
             </h4>
@@ -121,29 +131,35 @@
               {{ rec.description }}
             </p>
 
-            <!-- Explanation & Rationale Callout Box -->
+            <!-- Explanation & Dual Score Breakdown Box -->
             <div class="explanation-box">
-              <div class="d-flex align-items-center justify-content-between mb-1">
-                <span class="rationale-text"><i class="bi bi-lightbulb-fill text-warning me-1"></i>Recommendation Rationale:</span>
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+                <span class="explanation-title"><i class="bi bi-lightbulb-fill text-warning me-1"></i>Recommendation Rationale:</span>
                 {% if rec.explanation.tfidf_score and rec.explanation.semantic_score %}
-                <span class="text-muted small" style="font-size: 0.72rem;">
-                  TF-IDF: {{ rec.explanation.tfidf_score }} | Semantic: {{ rec.explanation.semantic_score }}
-                </span>
+                <div class="d-flex gap-2">
+                  <span class="badge bg-white text-secondary border px-2 py-1" title="Lexical TF-IDF keyword overlap">
+                    TF-IDF: <strong>{{ rec.explanation.tfidf_score }}</strong>
+                  </span>
+                  <span class="badge bg-white text-primary border px-2 py-1" title="Sentence-BERT 384d semantic similarity">
+                    S-BERT: <strong>{{ rec.explanation.semantic_score }}</strong>
+                  </span>
+                </div>
                 {% endif %}
               </div>
               <div class="small text-muted">{{ rec.explanation.rationale }}</div>
               {% if rec.explanation.shared_tags %}
-              <div class="shared-tags mt-1">
-                Shared Concepts: {% for t in rec.explanation.shared_tags %}<span class="badge bg-white text-danger border border-danger-subtle me-1">#{{ t }}</span>{% endfor %}
+              <div class="shared-tags mt-2">
+                <span class="fw-semibold small text-dark me-1">Shared Concepts:</span>
+                {% for t in rec.explanation.shared_tags %}<span class="badge bg-white text-danger border border-danger-subtle me-1">#{{ t }}</span>{% endfor %}
               </div>
               {% endif %}
             </div>
           </div>
 
-          <!-- Action Buttons Column -->
-          <div class="col-md-3 col-12 d-flex flex-column justify-content-between border-start-md pt-3 pt-md-0">
+          <!-- Actions & Feedback Column -->
+          <div class="col-lg-3 col-md-3 col-12 d-flex flex-column justify-content-between border-start-md pt-3 pt-md-0">
             <div>
-              <span class="text-muted small d-block mb-1">Topics:</span>
+              <span class="text-muted small d-block mb-1">Topic Tags:</span>
               <div class="d-flex flex-wrap gap-1 mb-3">
                 {% for tag in rec.tags_preview %}
                 <a href="{% url 'talks:explore' %}?tag={{ tag|urlencode }}" class="tag-pill">#{{ tag }}</a>
@@ -151,9 +167,23 @@
               </div>
             </div>
 
+            <!-- Feedback Group (AJAX wired) -->
+            <div class="mb-3">
+              <div class="text-muted small mb-1" style="font-size: 0.72rem;">Was this recommendation relevant?</div>
+              <div class="feedback-btn-group" id="fbGroup-{{ rec.talk_id }}">
+                <button type="button" class="feedback-action-btn" onclick="submitFeedback({{ rec.talk_id }}, 'like', this)" title="Relevant recommendation">
+                  <i class="bi bi-hand-thumbs-up"></i> Helpful
+                </button>
+                <button type="button" class="feedback-action-btn" onclick="submitFeedback({{ rec.talk_id }}, 'dislike', this)" title="Not relevant">
+                  <i class="bi bi-hand-thumbs-down"></i> Not quite
+                </button>
+              </div>
+            </div>
+
+            <!-- Navigation Links -->
             <div class="d-flex flex-column gap-2 mt-auto">
               <a href="{% url 'talks:detail' rec.talk_id %}" class="btn btn-sm btn-dark w-100">
-                <i class="bi bi-info-circle me-1"></i> View Talk Details
+                <i class="bi bi-info-circle me-1"></i> View Details
               </a>
               {% if rec.url %}
               <a href="{{ rec.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-danger w-100">
@@ -172,15 +202,18 @@
     {% endfor %}
   </div>
 
-  <!-- Bottom Action Card -->
+  <!-- Bottom Query Refinement Card -->
   <div class="card border-0 shadow-sm p-4 text-center bg-white rounded-3 mb-5">
-    <h4 class="fw-bold mb-2">Want to try a different perspective?</h4>
-    <p class="text-muted small mx-auto mb-3" style="max-width: 500px;">
-      Switch between TF-IDF lexical matching and Sentence-BERT semantic search, or adjust the MMR diversity slider to discover niche talks.
+    <h4 class="fw-bold mb-2">Explore alternative perspectives</h4>
+    <p class="text-muted small mx-auto mb-3" style="max-width: 540px;">
+      Switch model architectures to compare lexical precision with deep transformer semantic reasoning, or adjust the MMR &lambda; slider.
     </p>
-    <div>
+    <div class="d-flex justify-content-center gap-3">
       <a href="{% url 'recommendations:form' %}" class="btn btn-ted px-4">
-        <i class="bi bi-sliders me-1"></i> New Recommendation Query
+        <i class="bi bi-sliders me-1"></i> Refine Signals
+      </a>
+      <a href="{% url 'talks:explore' %}" class="btn btn-outline-dark px-4">
+        <i class="bi bi-compass me-1"></i> Explore Full Catalog
       </a>
     </div>
   </div>
@@ -194,10 +227,48 @@
       The engine couldn't match enough candidates for this query. Try choosing broader interest tags or select a different seed talk.
     </p>
     <div>
-      <a href="{% url 'recommendations:form' %}" class="btn btn-ted px-4">Return to Recommendation Form</a>
+      <a href="{% url 'recommendations:form' %}" class="btn btn-ted px-4">Return to Studio</a>
     </div>
   </div>
   {% endif %}
 
 </div>
+
+<script>
+// Submit recommendation feedback via AJAX
+function submitFeedback(talkId, feedbackType, btnElement) {
+  const container = document.getElementById('fbGroup-' + talkId);
+  const formData = new FormData();
+  formData.append('talk_id', talkId);
+  formData.append('feedback_type', feedbackType);
+
+  // Send to API feedback endpoint
+  fetch('/api/feedback/', {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'success') {
+      // Clear previous active classes in this button group
+      container.querySelectorAll('.feedback-action-btn').forEach(b => {
+        b.classList.remove('active-like', 'active-dislike');
+      });
+      if (feedbackType === 'like') {
+        btnElement.classList.add('active-like');
+        btnElement.innerHTML = '<i class="bi bi-hand-thumbs-up-fill"></i> Saved';
+      } else {
+        btnElement.classList.add('active-dislike');
+        btnElement.innerHTML = '<i class="bi bi-hand-thumbs-down-fill"></i> Recorded';
+      }
+    }
+  })
+  .catch(err => {
+    console.error('Feedback submission failed:', err);
+  });
+}
+</script>
 {% endblock %}

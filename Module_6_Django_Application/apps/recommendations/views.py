@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.contrib import messages
 
 from apps.recommendations.services import get_recommender_service
-from apps.talks.models import SavedTalk
+from apps.talks.models import SavedTalk, UserFeedback, RecommendationEvent
 
 
 CURATED_INTEREST_TAGS = [
@@ -47,15 +47,19 @@ def recommend_form_view(request):
         except (ValueError, TypeError):
             pass
 
-    # Check saved talks for session personalization
+    # Check saved talks for user or session personalization
     saved_talks = []
-    if request.session.session_key:
-        s_key = request.session.session_key
-        saved_records = SavedTalk.objects.filter(session_key=s_key)
-        for item in saved_records:
-            t_data = service.get_talk_by_id(item.talk_id)
-            if t_data:
-                saved_talks.append(t_data)
+    if request.user.is_authenticated:
+        saved_records = SavedTalk.objects.filter(user=request.user)
+    elif request.session.session_key:
+        saved_records = SavedTalk.objects.filter(session_key=request.session.session_key)
+    else:
+        saved_records = []
+
+    for item in saved_records:
+        t_data = service.get_talk_by_id(item.talk_id)
+        if t_data:
+            saved_talks.append(t_data)
 
     context = {
         "curated_tags": CURATED_INTEREST_TAGS,
@@ -107,11 +111,30 @@ def recommend_results_view(request):
         except (ValueError, TypeError):
             seed_talk_id = None
 
-    # Handle session saved talks for personalization
+    # Handle saved talks and preferences for personalization
     liked_talk_ids = []
-    if use_saved_profile and request.session.session_key:
-        saved_records = SavedTalk.objects.filter(session_key=request.session.session_key)
-        liked_talk_ids = [r.talk_id for r in saved_records]
+    if use_saved_profile:
+        if request.user.is_authenticated:
+            saved_records = SavedTalk.objects.filter(user=request.user)
+            liked_talk_ids = [r.talk_id for r in saved_records]
+            if not selected_tags and hasattr(request.user, "profile"):
+                selected_tags = request.user.profile.get_preferred_topics_list()
+        elif request.session.session_key:
+            saved_records = SavedTalk.objects.filter(session_key=request.session.session_key)
+            liked_talk_ids = [r.talk_id for r in saved_records]
+
+    # Handle negative feedback to exclude or down-weight talks
+    disliked_talk_ids = []
+    if request.user.is_authenticated:
+        disliked_records = UserFeedback.objects.filter(
+            user=request.user, feedback_type__in=["dislike", "not_interested"]
+        )
+        disliked_talk_ids = [r.talk_id for r in disliked_records]
+    elif request.session.session_key:
+        disliked_records = UserFeedback.objects.filter(
+            session_key=request.session.session_key, feedback_type__in=["dislike", "not_interested"]
+        )
+        disliked_talk_ids = [r.talk_id for r in disliked_records]
 
     # Validate that at least one valid input signal is provided
     if not seed_talk_id and not query_text and not selected_tags and not liked_talk_ids:
@@ -136,18 +159,37 @@ def recommend_results_view(request):
             method=method,
             top_k=top_k,
             apply_mmr=apply_mmr,
+            exclude_talk_ids=set(disliked_talk_ids) if disliked_talk_ids else None,
         )
     else:
         recommendations = service.recommend_by_interests(
             user_interests=selected_tags,
             query_text=query_text,
             liked_talk_ids=liked_talk_ids if liked_talk_ids else None,
+            disliked_talk_ids=disliked_talk_ids if disliked_talk_ids else None,
             method=method,
             top_k=top_k,
             apply_mmr=apply_mmr,
         )
 
     latency_ms = round((time.perf_counter() - t0) * 1000.0, 1)
+
+    # Audit logging for recommendation event
+    try:
+        user_obj = request.user if request.user.is_authenticated else None
+        s_key = request.session.session_key or ""
+        rec_ids = [r["talk_id"] for r in recommendations]
+        RecommendationEvent.objects.create(
+            user=user_obj,
+            session_key=s_key,
+            seed_talk_id=seed_talk_id,
+            query_text=query_text,
+            method=method,
+            recommended_talk_ids=rec_ids,
+            latency_ms=latency_ms,
+        )
+    except Exception:
+        pass
 
     method_labels = {
         "hybrid": "Multi-Signal Hybrid (TF-IDF + Semantic)",

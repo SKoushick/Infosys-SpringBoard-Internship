@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: tedmind_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tedmind_db
+      POSTGRES_USER: tedmind_user
+      POSTGRES_PASSWORD: tedmind_secure_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    container_name: tedmind_web
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      DJANGO_DEBUG: "False"
+      DJANGO_SECRET_KEY: "production-insecure-change-this-key-in-deployment-2026"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,web"
+      DATABASE_URL: "postgresql://tedmind_user:tedmind_secure_password@db:5432/tedmind_db"
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./Module_6_Django_Application/staticfiles:/app/Module_6_Django_Application/staticfiles
+
+volumes:
+  postgres_data:
