@@ -9,9 +9,22 @@ Modules:
     features    - Text feature engineering and vectorisation
     recommender - Recommendation algorithms (TF-IDF, semantic, hybrid)
     evaluation  - Evaluation metrics and readiness utilities
+    learning    - Pedagogical complexity and learning progression
     utils       - Shared utility functions
 """
 
-__version__ = "1.0.0"
+from .learning import (
+    ComplexityEstimatorConfig,
+    ComplexityProfile,
+    PedagogicalComplexityEstimator,
+)
+
+__version__ = "1.1.0"
 __author__ = "SKoushick"
+
+__all__ = [
+    "ComplexityEstimatorConfig",
+    "ComplexityProfile",
+    "PedagogicalComplexityEstimator",
+]
 

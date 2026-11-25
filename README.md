@@ -3,7 +3,7 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/django-5.2-green.svg)](https://www.djangoproject.com/)
-[![Testing](https://img.shields.io/badge/tests-75%20passed-success.svg)](TESTING.md)
+[![Testing](https://img.shields.io/badge/tests-110%20passed-success.svg)](TESTING.md)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![Sentence--Transformers](https://img.shields.io/badge/Sentence--Transformers-all--MiniLM--L6--v2-blueviolet.svg)](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
 
@@ -24,7 +24,7 @@
 - **Custom Collections:** User-curated playlists and study paths with personal learning notes.
 - **Negative Feedback Loop:** Dynamic exclusion of disliked talks (`dislike`, `not_interested`) to eliminate unwanted topics.
 - **RESTful API Layer:** Programmatic endpoints for talks, recommendations, user interactions, and system health checks (`/api/`).
-- **Production Hardened:** Environment-variable isolation (`.env`), HTTP security headers (HSTS, X-Frame-Options, CSRF, No-Sniff), and Docker Compose deployment.
+- **Deployment Readiness:** Environment-variable isolation (`.env`), HTTP security headers (HSTS, X-Frame-Options, CSRF, No-Sniff), and Docker Compose containerization configuration.
 
 ---
 
@@ -48,7 +48,7 @@ python Module_6_Django_Application/manage.py runserver 127.0.0.1:8000
 
 Open your browser at: 👉 **`http://127.0.0.1:8000/`**
 
-### Production Deployment (Docker Compose)
+### Containerized Deployment (Docker Compose)
 
 ```bash
 docker-compose up -d --build
@@ -58,18 +58,21 @@ docker-compose exec web python Module_6_Django_Application/manage.py collectstat
 
 ---
 
-## 4. Automated Testing Suite (75/75 Passing)
+## 4. Automated Testing Suite (110/110 Passing)
 
-TEDMind enforces rigorous quality assurance across all modules:
+TEDMind enforces rigorous quality assurance across all modules and Phase 2 learning pathways:
 
 | Test Suite | File Location | Tests | Status |
 | :--- | :--- | :---: | :---: |
-| **Web Application Views** | `Module_6_Django_Application/tests/test_views.py` | 9 | **PASS** |
+| **Web Application Views & UI** | `Module_6_Django_Application/tests/test_views.py` | 9 | **PASS** |
 | **Accounts & Personalization** | `Module_6_Django_Application/tests/test_accounts.py` | 7 | **PASS** |
 | **REST API Endpoints** | `Module_6_Django_Application/tests/test_api.py` | 7 | **PASS** |
-| **Core ML Pipeline (Modules 1–4)** | `tests/test_*.py` | 20 | **PASS** |
+| **Data Models & Constraints** | `Module_6_Django_Application/tests/test_models.py` | 1 | **PASS** |
+| **Learning Path & Heartbeat Services** | `Module_6_Django_Application/tests/test_learning_services.py` | 18 | **PASS** |
+| **Learning Admin Safeguards & Merging** | `Module_6_Django_Application/tests/test_learning_admin.py` | 7 | **PASS** |
+| **Core ML & Pedagogical Engine** | `tests/test_ted_recommender.py`, `tests/test_learning.py` | 29 | **PASS** |
 | **Module 5 Evaluation Metrics** | `Module_5_Evaluation_Metrics/tests/test_*.py` | 32 | **PASS** |
-| **Total Test Suite** | — | **75 Tests** | **100% PASS** |
+| **Total Test Suite** | — | **110 Tests** | **100% PASS** |
 
 To run the complete web suite:
 ```powershell
@@ -79,21 +82,26 @@ cd Module_6_Django_Application
 
 ---
 
-## 5. Measured Benchmark Scorecard (Module 5 Empirical Evaluation)
+## 5. Measured Benchmark Scorecard (Module 5: Evaluation Metrics)
 
-Evaluated across 100 deterministic evaluation queries under identical conditions:
+Evaluated across 100 deterministic evaluation queries under identical conditions (inspected from `Module_5_Evaluation_Metrics/results/benchmarks/benchmark_summary_table.csv`):
 
 | Model | NDCG@10 | MAP@10 | Precision@10 | Recall@10 | ILD@10 (Diversity) | Coverage (%) | Latency (ms) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **TF-IDF Content-Based** | 0.0063 | 0.0026 | 0.0040 | 0.0077 | 0.6851 | 51.88% | **32.5 ms** |
-| **Sentence-BERT Semantic** | 0.0053 | 0.0018 | 0.0040 | 0.0073 | 0.5597 | 48.98% | 35.4 ms |
-| **Hybrid Multi-Signal (No MMR)** | **0.0076** | **0.0035** | 0.0040 | 0.0073 | 0.5763 | 50.59% | 56.9 ms |
-| **Hybrid Multi-Signal + MMR** | 0.0074 | 0.0033 | 0.0040 | 0.0073 | **0.6953 (+20.6%)** | **54.16%** | 87.1 ms |
+| **TF-IDF Content-Based** | 0.0063 | 0.0026 | 0.0040 | 0.0077 | 0.6851 | 51.88% | **28.96 ms** |
+| **Sentence-BERT Semantic** | 0.0053 | 0.0018 | 0.0040 | 0.0073 | 0.5597 | 48.98% | **23.64 ms** |
+| **Hybrid Multi-Signal (No MMR)** | **0.0076** | **0.0035** | 0.0040 | 0.0073 | 0.5763 | 50.59% | 34.83 ms |
+| **Hybrid Multi-Signal + MMR** | 0.0074 | 0.0033 | 0.0040 | 0.0073 | **0.6953 (+20.6%)** | **54.16%** | 51.20 ms |
+
+*Note: Benchmarks were evaluated against the editorial companion talk proxy ground truth (`related_talks`). Qualitative human relevance evaluation is pending (0/200 human grades assigned).*
 
 ---
 
 ## 6. Project Documentation Index
 
+- [docs/MODULE_7_FINAL_TECHNICAL_DOCUMENTATION.md](docs/MODULE_7_FINAL_TECHNICAL_DOCUMENTATION.md) — Comprehensive technical documentation, architecture, formulas, evaluation audit, and Phase 2 specifications.
+- [docs/presentation/TEDMind_Final_Presentation.pdf](docs/presentation/TEDMind_Final_Presentation.pdf) — Master 10-slide final project presentation deck (Infosys Springboard 7.0).
+- [docs/presentation/TEDMind_5_Minute_Speaker_Script.md](docs/presentation/TEDMind_5_Minute_Speaker_Script.md) — 5-minute timed speaker script with slide transition notes.
 - [ARCHITECTURE.md](ARCHITECTURE.md) — System components, multi-signal scoring formulas, and singleton lifecycle.
 - [SECURITY.md](SECURITY.md) — Authentication safeguards, HTTP headers, CSRF enforcement, and vulnerability policy.
 - [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) — Entity-relationship models, table definitions, and constraints.
